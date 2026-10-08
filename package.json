@@ -1,0 +1,39 @@
+{
+  "name": "pan-comido",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pan Comido: ventas de mostrador, encargos, producción con recetas y stock para pastelería",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,cyan \"node server/index.js\" \"vite\"",
+    "dev:api": "node --watch server/index.js",
+    "dev:web": "vite",
+    "build": "vite build",
+    "migrate": "node server/db/migrate.js",
+    "start": "node server/db/migrate.js && node server/index.js",
+    "setup": "bash scripts/setup-local.sh"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "lucide-react": "^0.544.0",
+    "multer": "^2.3.0",
+    "pg": "^8.16.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@vitejs/plugin-react": "^5.0.2",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "^4.1.13",
+    "vite": "^7.1.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
