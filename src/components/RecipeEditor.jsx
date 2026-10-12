@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { api } from '../api';
 import { compatibleUnits, convertQty, friendlyUnit, money, recipeQty } from '../format';
@@ -19,6 +19,15 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
     })
   );
   const [editing, setEditing] = useState(!product.recipe?.items?.length);
+  // Al tocar "escribir procedimiento" se abre el editor con el cursor en las notas
+  const notesRef = useRef(null);
+  const [focusNotes, setFocusNotes] = useState(false);
+  useEffect(() => {
+    if (editing && focusNotes) {
+      notesRef.current?.focus();
+      setFocusNotes(false);
+    }
+  }, [editing, focusNotes]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -156,6 +165,7 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
             <label className="field">
               <span>Notas o procedimiento</span>
               <textarea
+                ref={notesRef}
                 rows={6}
                 value={notes}
                 placeholder="Ej: Batir la manteca con el azúcar, sumar los huevos de a uno… Horno 180° por 12 minutos."
@@ -202,12 +212,21 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
                 <strong>{money(product.recipe.unitCost, currency)}</strong>
               </span>
             </div>
-            {product.recipe.notes && (
-              <div className="border-t border-[var(--line)] px-4 py-3">
-                <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#6b6266]">Procedimiento</div>
+            {/* El procedimiento se ve siempre, aunque esté vacío, para que se sepa dónde cargarlo */}
+            <div className="border-t border-[var(--line)] px-4 py-3">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#6b6266]">Notas o procedimiento</div>
+              {product.recipe.notes ? (
                 <p className="m-0 whitespace-pre-wrap text-sm">{product.recipe.notes}</p>
-              </div>
-            )}
+              ) : (
+                <button type="button" className="text-link p-0 text-sm" onClick={() => {
+                    setFocusNotes(true);
+                    setEditing(true);
+                  }}
+                >
+                  Todavía no hay procedimiento. Tocá acá para escribirlo.
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>
