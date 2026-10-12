@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { api } from '../api';
-import { money, qty, today, ymd } from '../format';
+import { money, qty, recipeQty, today, ymd } from '../format';
 import { useStore } from '../store';
 
 // Producción: qué hornear (según encargos y stock crítico) y registro de lo horneado.
@@ -16,6 +16,7 @@ export default function ProductionPage() {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [recipe, setRecipe] = useState(null);
 
   async function load(nextDays = days) {
     const [p, b, list] = await Promise.all([api.productionPlan(today(), nextDays), api.production(), api.products('?kind=product')]);
@@ -27,6 +28,21 @@ export default function ProductionPage() {
   useEffect(() => {
     load().catch((err) => setError(err.message));
   }, []);
+
+  // Receta del producto elegido, para mostrar qué ingredientes se van a descontar
+  useEffect(() => {
+    setRecipe(null);
+    if (!form.productId) return;
+    let alive = true;
+    api
+      .product(form.productId)
+      .then((res) => alive && setRecipe(res.data.recipe))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [form.productId]);
+  const factor = recipe?.yield && Number(form.qty) > 0 ? Number(form.qty) / Number(recipe.yield) : 0;
 
   async function produce(productId, amount) {
     setBusy(true);
@@ -138,6 +154,31 @@ export default function ProductionPage() {
           <button className="pill-btn primary" type="submit" disabled={busy}>
             Registrar
           </button>
+          {form.productId && recipe && (
+            <div className="text-sm text-[#5a5155] sm:col-span-4">
+              {!recipe.items.length ? (
+                <>
+                  Este producto no tiene receta: no se va a descontar ningún ingrediente.{' '}
+                  <Link className="text-link" to={`/recetas/${form.productId}`}>
+                    Cargar receta
+                  </Link>
+                </>
+              ) : factor > 0 ? (
+                <>
+                  Se descuenta ({qty(factor)} tanda{factor === 1 ? '' : 's'} de {qty(recipe.yield)}):{' '}
+                  {recipe.items
+                    .map((item) => `${item.name} ${recipeQty(Number(item.qty) * factor, item.unit)}`)
+                    .join(' · ')}
+                  .{' '}
+                  <Link className="text-link" to={`/recetas/${form.productId}`}>
+                    Ver receta
+                  </Link>
+                </>
+              ) : (
+                <>Receta: rinde {qty(recipe.yield)} por tanda. Poné la cantidad para ver qué se descuenta.</>
+              )}
+            </div>
+          )}
         </form>
       </section>
 

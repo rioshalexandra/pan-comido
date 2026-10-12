@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { api } from '../api';
-import { money } from '../format';
+import { compatibleUnits, convertQty, friendlyUnit, money, recipeQty } from '../format';
 import { useStore } from '../store';
 
 // Editor de receta: ingredientes por tanda y cuántas unidades rinde.
 // Muestra el costo por tanda y por unidad mientras se edita.
-export default function RecipeEditor({ product, onSaved }) {
+// Cada cantidad se puede escribir en una unidad cómoda (g, ml) y se guarda en la del ingrediente.
+export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
   const { currency } = useStore();
   const [ingredients, setIngredients] = useState([]);
   const [yieldQty, setYieldQty] = useState(String(product.recipe?.yield || ''));
   const [lines, setLines] = useState(
-    (product.recipe?.items || []).map((item) => ({ ingredientId: String(item.ingredient_id), qty: String(Number(item.qty)) }))
+    (product.recipe?.items || []).map((item) => {
+      const unit = friendlyUnit(item.qty, item.unit);
+      return { ingredientId: String(item.ingredient_id), qty: String(round(convertQty(item.qty, item.unit, unit))), unit };
+    })
   );
   const [editing, setEditing] = useState(!product.recipe?.items?.length);
   const [error, setError] = useState('');
@@ -22,7 +26,12 @@ export default function RecipeEditor({ product, onSaved }) {
   }, []);
 
   const byId = useMemo(() => Object.fromEntries(ingredients.map((ing) => [String(ing.id), ing])), [ingredients]);
-  const batchCost = lines.reduce((sum, line) => sum + Number(line.qty || 0) * Number(byId[line.ingredientId]?.cost_price || 0), 0);
+  // Cantidad de una línea en la unidad del ingrediente (la que usa el stock y el costo)
+  const storedQty = (line) => {
+    const ing = byId[line.ingredientId];
+    return ing ? convertQty(line.qty || 0, line.unit || ing.unit, ing.unit) : Number(line.qty || 0);
+  };
+  const batchCost = lines.reduce((sum, line) => sum + storedQty(line) * Number(byId[line.ingredientId]?.cost_price || 0), 0);
   const unitCost = Number(yieldQty) > 0 ? batchCost / Number(yieldQty) : null;
   const price = Number(product.sale_price || 0);
 
@@ -38,7 +47,7 @@ export default function RecipeEditor({ product, onSaved }) {
         yield: Number(yieldQty || 0),
         items: lines.filter((line) => line.ingredientId && Number(line.qty) > 0).map((line) => ({
           ingredientId: Number(line.ingredientId),
-          qty: Number(line.qty),
+          qty: round(storedQty(line), 4),
         })),
       });
       setEditing(false);
@@ -53,7 +62,7 @@ export default function RecipeEditor({ product, onSaved }) {
   return (
     <section className="mb-6">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="section-title m-0">Receta</h2>
+        <h2 className="section-title m-0">{title}</h2>
         {!editing && (
           <button className="pill-btn" onClick={() => setEditing(true)}>
             Editar receta
@@ -66,8 +75,8 @@ export default function RecipeEditor({ product, onSaved }) {
         {editing ? (
           <div className="grid gap-3 p-4">
             <p className="m-0 text-sm text-[#5a5155]">
-              Cargá los ingredientes de <strong>una tanda</strong>, en la misma unidad de cada ingrediente (por ejemplo, 0,35
-              kg de harina), y cuántas unidades salen.
+              Cargá los ingredientes de <strong>una tanda</strong> tal como los usás (por ejemplo, 350 g de harina) y cuántas
+              unidades salen. Al registrar producción se descuentan estas cantidades del stock de ingredientes.
             </p>
             {lines.map((line, index) => {
               const ing = byId[line.ingredientId];
@@ -75,7 +84,10 @@ export default function RecipeEditor({ product, onSaved }) {
                 <div key={index} className="flex items-end gap-2">
                   <label className="field min-w-0 flex-1">
                     <span>Ingrediente</span>
-                    <select value={line.ingredientId} onChange={(e) => setLine(index, { ingredientId: e.target.value })}>
+                    <select
+                      value={line.ingredientId}
+                      onChange={(e) => setLine(index, { ingredientId: e.target.value, unit: defaultUnit(byId[e.target.value]?.unit) })}
+                    >
                       <option value="">Elegí…</option>
                       {ingredients.map((item) => (
                         <option key={item.id} value={item.id}>
@@ -84,8 +96,8 @@ export default function RecipeEditor({ product, onSaved }) {
                       ))}
                     </select>
                   </label>
-                  <label className="field w-28">
-                    <span>Cantidad{ing ? ` (${ing.unit})` : ''}</span>
+                  <label className="field w-24">
+                    <span>Cantidad</span>
                     <input
                       type="number"
                       inputMode="decimal"
@@ -94,6 +106,20 @@ export default function RecipeEditor({ product, onSaved }) {
                       value={line.qty}
                       onChange={(e) => setLine(index, { qty: e.target.value })}
                     />
+                  </label>
+                  <label className="field w-20">
+                    <span>Unidad</span>
+                    <select
+                      value={line.unit || ing?.unit || ''}
+                      disabled={!ing}
+                      onChange={(e) => setLine(index, { unit: e.target.value })}
+                    >
+                      {(ing ? compatibleUnits(ing.unit) : ['']).map((unit) => (
+                        <option key={unit} value={unit}>
+                          {unit}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <button
                     type="button"
@@ -109,12 +135,12 @@ export default function RecipeEditor({ product, onSaved }) {
             <button
               type="button"
               className="pill-btn inline-flex w-fit items-center gap-1"
-              onClick={() => setLines((prev) => [...prev, { ingredientId: '', qty: '' }])}
+              onClick={() => setLines((prev) => [...prev, { ingredientId: '', qty: '', unit: '' }])}
             >
               <Plus size={15} /> Agregar ingrediente
             </button>
             <label className="field max-w-xs">
-              <span>Rinde (unidades por tanda)</span>
+              <span>Rinde ({product.unit || 'unidades'} por tanda)</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -152,7 +178,7 @@ export default function RecipeEditor({ product, onSaved }) {
               <div key={item.id} className="list-row">
                 <span>{item.name}</span>
                 <span className="text-[#5a5155]">
-                  {Number(item.qty)} {item.unit} · {money(item.line_cost, currency)}
+                  {recipeQty(item.qty, item.unit)} · {money(item.line_cost, currency)}
                 </span>
               </div>
             ))}
@@ -170,4 +196,16 @@ export default function RecipeEditor({ product, onSaved }) {
       </div>
     </section>
   );
+}
+
+// Al elegir un ingrediente en kg o litros, la receta se escribe en g o ml
+function defaultUnit(unit) {
+  if (unit === 'kg') return 'g';
+  if (unit === 'l') return 'ml';
+  return unit || '';
+}
+
+function round(value, decimals = 3) {
+  const factor = 10 ** decimals;
+  return Math.round(Number(value) * factor) / factor;
 }

@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage';
 import CobrarPage from './pages/CobrarPage';
 import OrdersPage from './pages/OrdersPage';
 import ProductionPage from './pages/ProductionPage';
+import RecipesPage from './pages/RecipesPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import PartiesPage from './pages/PartiesPage';
@@ -39,6 +40,8 @@ export default function App() {
         <Route path="encargos" element={<OrdersPage />} />
         <Route path="produccion" element={<ProductionPage />} />
         {/* key distinta para que no se mezcle el estado entre productos e ingredientes */}
+        <Route path="recetas" element={<RecipesPage />} />
+        <Route path="recetas/:id" element={<RecipesPage />} />
         <Route path="productos" element={<ProductsPage key="products" kind="products" />} />
         <Route path="productos/:id" element={<ProductDetailPage />} />
         <Route path="ingredientes" element={<ProductsPage key="ingredients" kind="ingredients" />} />

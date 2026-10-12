@@ -8,6 +8,7 @@ import {
   Home,
   LogOut,
   Menu,
+  NotebookPen,
   PackagePlus,
   Percent,
   Receipt,
@@ -24,24 +25,49 @@ import { useAuth } from '../auth';
 import { useStore } from '../store';
 import PoweredBy from './PoweredBy';
 
-// Menú completo. main: lo de todos los días; el resto queda agrupado en "Administración".
-export const NAV = [
-  { to: '/', label: 'Inicio', icon: Home, end: true, main: true },
-  { to: '/vender', label: 'Vender', icon: Wallet, main: true },
-  { to: '/encargos', label: 'Encargos', icon: ClipboardList, main: true },
-  { to: '/produccion', label: 'Producción', icon: CookingPot, main: true },
-  { to: '/productos', label: 'Productos', icon: Cookie, main: true },
-  { to: '/ingredientes', label: 'Ingredientes', icon: Wheat, main: true },
-  { to: '/clientes', label: 'Clientes', icon: Users, main: true },
-  { to: '/ventas', label: 'Ventas', icon: Receipt },
-  { to: '/pedido', label: 'Pedido a proveedores', icon: ShoppingBag },
-  { to: '/proveedores', label: 'Proveedores', icon: Truck },
-  { to: '/compras', label: 'Compras', icon: PackagePlus },
-  { to: '/movimientos', label: 'Movimientos de stock', icon: History },
-  { to: '/pagos', label: 'Pagos', icon: Wallet },
-  { to: '/precios', label: 'Precios', icon: Percent },
-  { to: '/importar', label: 'CSV / Excel', icon: FileSpreadsheet },
-  { to: '/configuracion', label: 'Configuración', icon: Settings },
+// Menú completo, agrupado por lo que se va a hacer:
+//   Caja       → atender al cliente (vender y tomar encargos)
+//   Producción → todo lo que se carga y registra
+//   Consultas  → para mirar lo que pasó
+//   Ajustes    → herramientas que se usan de vez en cuando
+export const NAV_GROUPS = [
+  { title: null, items: [{ to: '/', label: 'Inicio', icon: Home, end: true }] },
+  {
+    title: 'Caja',
+    items: [
+      { to: '/vender', label: 'Vender', icon: Wallet },
+      { to: '/encargos', label: 'Encargos', icon: ClipboardList },
+    ],
+  },
+  {
+    title: 'Producción',
+    items: [
+      { to: '/produccion', label: 'Producción', icon: CookingPot },
+      { to: '/recetas', label: 'Recetas', icon: NotebookPen },
+      { to: '/productos', label: 'Productos', icon: Cookie },
+      { to: '/ingredientes', label: 'Ingredientes', icon: Wheat },
+      { to: '/clientes', label: 'Clientes', icon: Users },
+      { to: '/proveedores', label: 'Proveedores', icon: Truck },
+    ],
+  },
+  {
+    title: 'Consultas',
+    items: [
+      { to: '/ventas', label: 'Ventas', icon: Receipt },
+      { to: '/compras', label: 'Compras', icon: PackagePlus },
+      { to: '/pagos', label: 'Pagos', icon: Wallet },
+      { to: '/movimientos', label: 'Movimientos de stock', icon: History },
+      { to: '/pedido', label: 'Pedido a proveedores', icon: ShoppingBag },
+    ],
+  },
+  {
+    title: 'Ajustes',
+    items: [
+      { to: '/precios', label: 'Precios', icon: Percent },
+      { to: '/importar', label: 'CSV / Excel', icon: FileSpreadsheet },
+      { to: '/configuracion', label: 'Configuración', icon: Settings },
+    ],
+  },
 ];
 
 // Barra inferior del celular: lo de todos los días al alcance del pulgar
@@ -125,16 +151,15 @@ export default function Layout() {
 }
 
 function Nav({ onPick }) {
-  const main = NAV.filter((item) => item.main);
-  const rest = NAV.filter((item) => !item.main);
   return (
     <nav>
-      {main.map((item) => (
-        <NavItem key={item.to} item={item} onPick={onPick} />
-      ))}
-      <div className="nav-group">Administración</div>
-      {rest.map((item) => (
-        <NavItem key={item.to} item={item} onPick={onPick} />
+      {NAV_GROUPS.map((group) => (
+        <div key={group.title || 'inicio'}>
+          {group.title && <div className="nav-group">{group.title}</div>}
+          {group.items.map((item) => (
+            <NavItem key={item.to} item={item} onPick={onPick} />
+          ))}
+        </div>
       ))}
     </nav>
   );

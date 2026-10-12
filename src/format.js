@@ -103,3 +103,30 @@ export function whatsappLink(phone, text = '') {
   if (!digits.startsWith('54')) digits = `549${digits}`;
   return `https://wa.me/${digits}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 }
+
+// Unidades compatibles para cargar recetas: la receta se guarda en la unidad del ingrediente,
+// pero se puede escribir en gramos aunque la harina esté en kg (o ml si está en litros).
+const UNIT_FACTORS = { kg: 1000, g: 1, l: 1000, ml: 1, docena: 12, un: 1 };
+const UNIT_FAMILIES = [['kg', 'g'], ['l', 'ml'], ['docena', 'un']];
+
+// Unidades en las que se puede escribir una cantidad de un ingrediente que se guarda en `unit`
+export function compatibleUnits(unit) {
+  return UNIT_FAMILIES.find((family) => family.includes(unit)) || [unit];
+}
+
+// Convierte una cantidad de una unidad a otra de la misma familia (g → kg, etc.)
+export function convertQty(value, from, to) {
+  if (from === to || !UNIT_FACTORS[from] || !UNIT_FACTORS[to]) return Number(value);
+  return (Number(value) * UNIT_FACTORS[from]) / UNIT_FACTORS[to];
+}
+
+// Unidad cómoda para mostrar una cantidad de receta: 0,35 kg se lee mejor como 350 g
+export function friendlyUnit(value, unit) {
+  if ((unit === 'kg' || unit === 'l') && Number(value) < 1) return unit === 'kg' ? 'g' : 'ml';
+  return unit;
+}
+
+export function recipeQty(value, unit) {
+  const shown = friendlyUnit(value, unit);
+  return `${qty(convertQty(value, unit, shown))} ${shown}`;
+}
