@@ -12,11 +12,15 @@ Un solo servicio sirve la interfaz y la API; PostgreSQL guarda los datos.
 | **Vender** | Venta de mostrador en un paso: tocar productos, medio de pago y listo. Descuenta stock |
 | **Encargos** | Pedidos con fecha y hora, retiro o envío (dirección y costo), seña, estados (pendiente, listo, entregado, cancelado), aviso por WhatsApp y entrega que genera la venta y cobra el saldo |
 | **Producción** | "Qué hornear" según encargos y stock crítico, registro de tandas (suma producto y descuenta ingredientes) e historial |
+| **Recetas** | Todas las recetas en un lugar: ingredientes por tanda (en g, ml o la unidad del ingrediente) y rinde. Es lo que Producción descuenta del stock |
 | **Productos** | Precio, stock, stock crítico, receta con rinde y costo por unidad calculado, ganancia |
 | **Ingredientes** | Materia prima con costo por unidad, stock, stock crítico, cantidad a pedir y proveedor habitual |
 | **Pedido a proveedores** | Ingredientes en stock crítico agrupados por proveedor; envío por WhatsApp y creación de la compra |
 | **Clientes** | Datos de contacto, dirección para envíos, cumpleaños, encargos e historial de compras |
-| **Administración** | Ventas, proveedores, compras, movimientos de stock, pagos, precios masivos, CSV / Excel y configuración |
+| **Consultas** | Ventas, compras, pagos, movimientos de stock y pedido a proveedores |
+| **Ajustes** | Precios masivos, CSV / Excel y configuración |
+
+El menú se agrupa en **Caja** (Vender, Encargos), **Producción** (Producción, Recetas, Productos, Ingredientes, Clientes, Proveedores), **Consultas** y **Ajustes**.
 
 Con `SEED_DEMO=true` y la base vacía se cargan productos, ingredientes y recetas de ejemplo de pastelería.
 
