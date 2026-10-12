@@ -151,7 +151,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // ---------- Receta ----------
-// body: { yield: 24, items: [{ ingredientId, qty }] }
+// body: { yield: 24, items: [{ ingredientId, qty }], notes: 'Procedimiento…' }
 router.put('/:id/recipe', async (req, res, next) => {
   try {
     const recipe = await withTransaction(async (client) => {
@@ -163,8 +163,9 @@ router.put('/:id/recipe', async (req, res, next) => {
         .filter((item) => item.ingredientId && item.qty > 0);
       if (items.length && yieldQty <= 0) throw httpError(400, 'Indicá cuántas unidades rinde la receta');
 
-      await client.query('UPDATE products SET recipe_yield = $1, updated_at = now() WHERE id = $2', [
+      await client.query('UPDATE products SET recipe_yield = $1, recipe_notes = $2, updated_at = now() WHERE id = $3', [
         yieldQty > 0 ? yieldQty : null,
+        emptyToNull(req.body?.notes),
         req.params.id,
       ]);
       await client.query('DELETE FROM recipe_items WHERE product_id = $1', [req.params.id]);

@@ -11,6 +11,7 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
   const { currency } = useStore();
   const [ingredients, setIngredients] = useState([]);
   const [yieldQty, setYieldQty] = useState(String(product.recipe?.yield || ''));
+  const [notes, setNotes] = useState(product.recipe?.notes || '');
   const [lines, setLines] = useState(
     (product.recipe?.items || []).map((item) => {
       const unit = friendlyUnit(item.qty, item.unit);
@@ -45,6 +46,7 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
     try {
       await api.saveRecipe(product.id, {
         yield: Number(yieldQty || 0),
+        notes,
         items: lines.filter((line) => line.ingredientId && Number(line.qty) > 0).map((line) => ({
           ingredientId: Number(line.ingredientId),
           qty: round(storedQty(line), 4),
@@ -151,6 +153,15 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
                 onChange={(e) => setYieldQty(e.target.value)}
               />
             </label>
+            <label className="field">
+              <span>Notas o procedimiento</span>
+              <textarea
+                rows={6}
+                value={notes}
+                placeholder="Ej: Batir la manteca con el azúcar, sumar los huevos de a uno… Horno 180° por 12 minutos."
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </label>
             <div className="notice">
               Costo por tanda: <strong>{money(batchCost, currency)}</strong>
               {unitCost != null && (
@@ -191,6 +202,12 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
                 <strong>{money(product.recipe.unitCost, currency)}</strong>
               </span>
             </div>
+            {product.recipe.notes && (
+              <div className="border-t border-[var(--line)] px-4 py-3">
+                <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#6b6266]">Procedimiento</div>
+                <p className="m-0 whitespace-pre-wrap text-sm">{product.recipe.notes}</p>
+              </div>
+            )}
           </>
         )}
       </div>
