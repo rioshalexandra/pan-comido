@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Download } from 'lucide-react';
 import { api } from '../api';
 import RecipeEditor from '../components/RecipeEditor';
 import { money, qty } from '../format';
+import { printRecipe } from '../lib/recipeSheet';
 import { useStore } from '../store';
 
 // Recetas: todas las recetas en un solo lugar. Lo que se carga acá es lo que
@@ -80,6 +81,7 @@ function RecipeList() {
 }
 
 function RecipeDetail({ id }) {
+  const { settings, currency } = useStore();
   const [product, setProduct] = useState(null);
   const [error, setError] = useState('');
 
@@ -101,7 +103,18 @@ function RecipeDetail({ id }) {
         <div className="text-[#6b6266]">{error || 'Cargando…'}</div>
       ) : (
         <>
-          <h1 className="mb-4 text-2xl">{product.name}</h1>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h1 className="m-0 text-2xl">{product.name}</h1>
+            {product.recipe?.items?.length > 0 && (
+              <button
+                type="button"
+                className="pill-btn inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
+                onClick={() => printRecipe({ product, storeName: settings?.name, currency })}
+              >
+                <Download size={16} /> Descargar ficha
+              </button>
+            )}
+          </div>
           <RecipeEditor key={product.updated_at} product={product} onSaved={load} title="Ingredientes por tanda" />
           <Link to={`/productos/${product.id}`} className="text-link text-sm">
             Ver ficha del producto (precio, stock, fotos)

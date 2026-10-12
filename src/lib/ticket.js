@@ -1,6 +1,6 @@
 import { METHODS, money, qty, ymd } from '../format';
 
-function esc(value) {
+export function esc(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -112,6 +112,12 @@ export function printTicket({
 </body>
 </html>`;
 
+  printHtml(html);
+}
+
+// Imprime un documento HTML en un iframe oculto. Desde el diálogo de impresión
+// se puede elegir "Guardar como PDF". `fileName` sugiere el nombre del PDF.
+export function printHtml(html, fileName) {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
   iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
@@ -124,7 +130,11 @@ export function printTicket({
   win.document.open();
   win.document.write(html);
   win.document.close();
+  // El navegador usa el título de la página como nombre del PDF
+  const previousTitle = document.title;
+  if (fileName) document.title = fileName;
   const cleanup = () => {
+    document.title = previousTitle;
     iframe.remove();
   };
   win.addEventListener('afterprint', cleanup);
