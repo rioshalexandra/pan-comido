@@ -29,11 +29,15 @@ export default function DashboardPage() {
       {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
       {data && (
         <>
-          <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <Kpi label="Cobrado hoy" value={money(cashTotal, currency)} hint="Incluye señas" />
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Kpi label="Ventas de hoy" value={money(data.todaySales.total, currency)} hint={`${data.todaySales.count} ventas`} />
             <Kpi label="Ventas del mes" value={money(data.month.total, currency)} hint={`${data.month.count} ventas`} />
-            <Kpi label="Ganancia del mes" value={money(data.month.margin, currency)} hint="Precio menos costo" />
+            <Kpi
+              className="col-span-2 sm:col-span-1"
+              label="Ganancia del mes"
+              value={money(data.month.margin, currency)}
+              hint="Precio menos costo"
+            />
           </div>
 
           <div className="mb-6 grid gap-6 xl:grid-cols-[3fr_2fr]">
@@ -128,6 +132,14 @@ export default function DashboardPage() {
                       <span className="font-medium">{money(row.total, currency)}</span>
                     </div>
                   ))}
+                  {data.cashToday.length > 0 && (
+                    <div className="list-row bg-[#f7efe0]">
+                      <span>
+                        Total <span className="text-xs text-[#6b6266]">(incluye señas)</span>
+                      </span>
+                      <strong>{money(cashTotal, currency)}</strong>
+                    </div>
+                  )}
                   {!data.cashToday.length && <div className="list-empty">Todavía no se cobró nada hoy.</div>}
                 </div>
               </section>
@@ -184,9 +196,9 @@ export default function DashboardPage() {
   );
 }
 
-function Kpi({ label, value, hint }) {
+function Kpi({ label, value, hint, className = '' }) {
   return (
-    <div className="kpi-card">
+    <div className={`kpi-card ${className}`}>
       <div className="kpi-label">{label}</div>
       <div className="kpi-value">{value}</div>
       <div className="mt-1 text-xs text-[#6b6266]">{hint}</div>
