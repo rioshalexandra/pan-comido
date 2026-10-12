@@ -93,6 +93,9 @@ CREATE TABLE IF NOT EXISTS recipe_items (
   CONSTRAINT recipe_items_unique UNIQUE (product_id, ingredient_id)
 );
 
+-- Notas o procedimiento de la receta (pasos, temperatura, tiempos)
+ALTER TABLE products ADD COLUMN IF NOT EXISTS recipe_notes TEXT;
+
 -- ---------- Clientes ----------
 CREATE TABLE IF NOT EXISTS customers (
   id SERIAL PRIMARY KEY,

@@ -4,7 +4,7 @@ import { money } from './helpers.js';
 // Devuelve la receta de un producto con el costo actual de cada ingrediente.
 // unitCost = costo total de la tanda / rinde.
 export async function loadRecipe(client, productId) {
-  const product = await client.query('SELECT id, recipe_yield FROM products WHERE id = $1', [productId]);
+  const product = await client.query('SELECT id, recipe_yield, recipe_notes FROM products WHERE id = $1', [productId]);
   const items = await client.query(
     `SELECT r.id, r.ingredient_id, r.qty, i.name, i.unit, i.cost_price, i.stock_qty,
             ROUND(r.qty * i.cost_price, 2) AS line_cost
@@ -18,6 +18,7 @@ export async function loadRecipe(client, productId) {
   const batchCost = items.rows.reduce((sum, row) => sum + Number(row.qty) * Number(row.cost_price), 0);
   return {
     yield: yieldQty || null,
+    notes: product.rows[0]?.recipe_notes || '',
     items: items.rows,
     batchCost: money(batchCost),
     unitCost: yieldQty > 0 ? money(batchCost / yieldQty) : null,
