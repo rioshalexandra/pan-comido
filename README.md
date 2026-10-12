@@ -17,10 +17,10 @@ Un solo servicio sirve la interfaz y la API; PostgreSQL guarda los datos.
 | **Ingredientes** | Materia prima con costo por unidad, stock, stock crítico, cantidad a pedir y proveedor habitual |
 | **Pedido a proveedores** | Ingredientes en stock crítico agrupados por proveedor; envío por WhatsApp y creación de la compra |
 | **Clientes** | Datos de contacto, dirección para envíos, cumpleaños, encargos e historial de compras |
-| **Consultas** | Ventas, compras, pagos, movimientos de stock y pedido a proveedores |
+| **Consultas** | Pagos y movimientos de stock |
 | **Ajustes** | Precios masivos, CSV / Excel y configuración |
 
-El menú se agrupa en **Mostrador** (Vender, Encargos), **Registros** (Producción, Productos, Ingredientes, Recetas, Clientes, Proveedores, Pedido a proveedores), **Consultas** y **Ajustes**.
+El menú se agrupa en **Mostrador** (Vender, Encargos), **Registros** (Producción, Productos, Ingredientes, Recetas, Clientes, Proveedores), **Compras y ventas** (Pedido a proveedores, Compras, Ventas), **Consultas** (Pagos, Movimientos de stock) y **Ajustes**.
 
 Con `SEED_DEMO=true` y la base vacía se cargan productos, ingredientes y recetas de ejemplo de pastelería.
 

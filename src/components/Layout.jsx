@@ -48,14 +48,19 @@ export const NAV_GROUPS = [
       { to: '/recetas', label: 'Recetas', icon: NotebookPen },
       { to: '/clientes', label: 'Clientes', icon: Users },
       { to: '/proveedores', label: 'Proveedores', icon: Truck },
+    ],
+  },
+  {
+    title: 'Compras y ventas',
+    items: [
       { to: '/pedido', label: 'Pedido a proveedores', icon: ShoppingBag },
+      { to: '/compras', label: 'Compras', icon: PackagePlus },
+      { to: '/ventas', label: 'Ventas', icon: Receipt },
     ],
   },
   {
     title: 'Consultas',
     items: [
-      { to: '/ventas', label: 'Ventas', icon: Receipt },
-      { to: '/compras', label: 'Compras', icon: PackagePlus },
       { to: '/pagos', label: 'Pagos', icon: Wallet },
       { to: '/movimientos', label: 'Movimientos de stock', icon: History },
     ],
