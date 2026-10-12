@@ -26,14 +26,14 @@ import { useStore } from '../store';
 import PoweredBy from './PoweredBy';
 
 // Menú completo, agrupado por lo que se va a hacer:
-//   Caja       → atender al cliente (vender y tomar encargos)
+//   Mostrador  → atender al cliente (vender y tomar encargos)
 //   Registros  → todo lo que se carga y registra
 //   Consultas  → para mirar lo que pasó
 //   Ajustes    → herramientas que se usan de vez en cuando
 export const NAV_GROUPS = [
   { title: null, items: [{ to: '/', label: 'Inicio', icon: Home, end: true }] },
   {
-    title: 'Caja',
+    title: 'Mostrador',
     items: [
       { to: '/vender', label: 'Vender', icon: Wallet },
       { to: '/encargos', label: 'Encargos', icon: ClipboardList },
