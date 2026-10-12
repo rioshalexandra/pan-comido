@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import { api } from '../api';
 import { compatibleUnits, convertQty, friendlyUnit, money, recipeQty } from '../format';
 import { useStore } from '../store';
+import { marginTone, recipeCosts } from '../lib/costs';
 
 // Editor de receta: ingredientes por tanda y cuántas unidades rinde.
 // Muestra el costo por tanda y por unidad mientras se edita.
 // Cada cantidad se puede escribir en una unidad cómoda (g, ml) y se guarda en la del ingrediente.
 export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
-  const { currency } = useStore();
+  const { currency, settings } = useStore();
   const [ingredients, setIngredients] = useState([]);
   const [yieldQty, setYieldQty] = useState(String(product.recipe?.yield || ''));
   const [notes, setNotes] = useState(product.recipe?.notes || '');
+  const [workMinutes, setWorkMinutes] = useState(minutesText(product.recipe_work_minutes));
+  const [ovenMinutes, setOvenMinutes] = useState(minutesText(product.recipe_oven_minutes));
   const [lines, setLines] = useState(
     (product.recipe?.items || []).map((item) => {
       const unit = friendlyUnit(item.qty, item.unit);
@@ -44,6 +48,18 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
   const batchCost = lines.reduce((sum, line) => sum + storedQty(line) * Number(byId[line.ingredientId]?.cost_price || 0), 0);
   const unitCost = Number(yieldQty) > 0 ? batchCost / Number(yieldQty) : null;
   const price = Number(product.sale_price || 0);
+  const draftCosts = recipeCosts({ ingredientUnitCost: unitCost, yieldQty, workMinutes, ovenMinutes, price }, settings);
+  const savedCosts = recipeCosts(
+    {
+      ingredientUnitCost: product.recipe?.unitCost,
+      yieldQty: product.recipe?.yield,
+      workMinutes: product.recipe_work_minutes,
+      ovenMinutes: product.recipe_oven_minutes,
+      price,
+    },
+    settings
+  );
+  const missingSettings = !Number(settings?.labor_hour_rate) || !Number(settings?.oven_hours_month);
 
   function setLine(index, patch) {
     setLines((prev) => prev.map((line, i) => (i === index ? { ...line, ...patch } : line)));
@@ -56,6 +72,8 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
       await api.saveRecipe(product.id, {
         yield: Number(yieldQty || 0),
         notes,
+        workMinutes: Number(workMinutes || 0),
+        ovenMinutes: Number(ovenMinutes || 0),
         items: lines.filter((line) => line.ingredientId && Number(line.qty) > 0).map((line) => ({
           ingredientId: Number(line.ingredientId),
           qty: round(storedQty(line), 4),
@@ -162,6 +180,36 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
                 onChange={(e) => setYieldQty(e.target.value)}
               />
             </label>
+            <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+              <label className="field">
+                <span>Minutos de trabajo por tanda</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  step="1"
+                  value={workMinutes}
+                  placeholder="Ej: 60"
+                  onChange={(e) => setWorkMinutes(e.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Minutos de horno por tanda</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  step="1"
+                  value={ovenMinutes}
+                  placeholder="Ej: 15"
+                  onChange={(e) => setOvenMinutes(e.target.value)}
+                />
+              </label>
+            </div>
+            <p className="-mt-1 m-0 text-xs text-[#6b6266]">
+              Contá todo tu tiempo: preparar, armar, decorar y envasar. Con esto la app suma tu trabajo y la luz y el gas al costo.
+              El packaging (caja, bolsa, etiqueta) cargalo como un ingrediente más.
+            </p>
             <label className="field">
               <span>Notas o procedimiento</span>
               <textarea
@@ -178,7 +226,14 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
                 <>
                   {' '}
                   · por unidad: <strong>{money(unitCost, currency)}</strong>
-                  {price > 0 && ` · ganancia ${Math.round(((price - unitCost) / price) * 100)}%`}
+                  {price > 0 && ` · margen bruto ${Math.round(((price - unitCost) / price) * 100)}%`}
+                </>
+              )}
+              {draftCosts && (draftCosts.laborUnit > 0 || draftCosts.energyUnit > 0) && (
+                <>
+                  <br />
+                  Con trabajo, luz y gas: <strong>{money(draftCosts.fullUnit, currency)}</strong> por unidad
+                  {draftCosts.realMargin != null && ` · margen real ${draftCosts.realMargin}%`}
                 </>
               )}
             </div>
@@ -212,6 +267,15 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
                 <strong>{money(product.recipe.unitCost, currency)}</strong>
               </span>
             </div>
+            {savedCosts && (
+              <CostBreakdown
+                costs={savedCosts}
+                currency={currency}
+                price={price}
+                missingSettings={missingSettings}
+                onAddMinutes={() => setEditing(true)}
+              />
+            )}
             {/* El procedimiento se ve siempre, aunque esté vacío, para que se sepa dónde cargarlo */}
             <div className="border-t border-[var(--line)] px-4 py-3">
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#6b6266]">Notas o procedimiento</div>
@@ -232,6 +296,89 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
       </div>
     </section>
   );
+}
+
+// Costo completo por unidad y los dos márgenes: bruto (solo ingredientes) y real (con todo)
+function CostBreakdown({ costs, currency, price, missingSettings, onAddMinutes }) {
+  const noMinutes = !costs.workMinutes && !costs.ovenMinutes;
+  return (
+    <div className="border-t border-[var(--line)] px-4 py-3 text-sm">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#6b6266]">Costo completo por unidad</div>
+      <div className="grid gap-1">
+        <Line label="Ingredientes y packaging" value={money(costs.ingredientsUnit, currency)} />
+        <Line
+          label={`Tu trabajo${costs.workMinutes ? ` (${costs.workMinutes} min por tanda)` : ''}`}
+          value={money(costs.laborUnit, currency)}
+        />
+        <Line
+          label={`Luz y gas${costs.ovenMinutes ? ` (${costs.ovenMinutes} min de horno)` : ''}`}
+          value={money(costs.energyUnit, currency)}
+        />
+        <Line label={<strong>Costo completo</strong>} value={<strong>{money(costs.fullUnit, currency)}</strong>} />
+      </div>
+      {price > 0 && (
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <Stat label="Precio de venta" value={money(price, currency)} />
+          <Stat label="Margen bruto" value={`${costs.grossMargin}%`} hint="solo ingredientes" />
+          <Stat
+            label="Margen real"
+            value={
+              costs.realMargin != null ? <span className={marginTone(costs.realMargin)}>{costs.realMargin}%</span> : '—'
+            }
+            hint={costs.realMargin != null ? `te quedan ${money(price - costs.fullUnit, currency)} por unidad` : 'faltan los minutos'}
+          />
+          {costs.perWorkHour != null && (
+            <Stat label="Ganás por hora de trabajo" value={money(costs.perWorkHour, currency)} hint="después de ingredientes, luz y gas" />
+          )}
+        </div>
+      )}
+      {(noMinutes || missingSettings) && (
+        <p className="mb-0 mt-3 text-xs text-[#6b6266]">
+          {noMinutes && (
+            <>
+              Para el margen real falta cargar los minutos de trabajo y de horno.{' '}
+              <button type="button" className="text-link p-0 text-xs" onClick={onAddMinutes}>
+                Cargarlos
+              </button>
+              {missingSettings ? ' · ' : ''}
+            </>
+          )}
+          {missingSettings && (
+            <>
+              Falta el valor de tu hora y el gasto de luz y gas en{' '}
+              <Link to="/configuracion" className="text-link">
+                Configuración
+              </Link>
+              .
+            </>
+          )}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Line({ label, value }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <span className="text-[#5a5155]">{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+function Stat({ label, value, hint }) {
+  return (
+    <div className="rounded-xl bg-[#faf6ee] px-3 py-2">
+      <div className="text-xs text-[#6b6266]">{label}</div>
+      <div className="text-base font-semibold">{value}</div>
+      {hint && <div className="text-[11px] text-[#6b6266]">{hint}</div>}
+    </div>
+  );
+}
+
+function minutesText(value) {
+  return Number(value) > 0 ? String(Number(value)) : '';
 }
 
 // Al elegir un ingrediente en kg o litros, la receta se escribe en g o ml

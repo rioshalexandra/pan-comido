@@ -95,6 +95,13 @@ CREATE TABLE IF NOT EXISTS recipe_items (
 
 -- Notas o procedimiento de la receta (pasos, temperatura, tiempos)
 ALTER TABLE products ADD COLUMN IF NOT EXISTS recipe_notes TEXT;
+-- Costo completo de una receta: minutos de trabajo y de horno por tanda
+ALTER TABLE products ADD COLUMN IF NOT EXISTS recipe_work_minutes NUMERIC(8,2);
+ALTER TABLE products ADD COLUMN IF NOT EXISTS recipe_oven_minutes NUMERIC(8,2);
+-- Valor de la hora de trabajo y gasto de luz y gas para calcular el margen real
+ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS labor_hour_rate NUMERIC(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS energy_monthly NUMERIC(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS oven_hours_month NUMERIC(8,2) NOT NULL DEFAULT 0;
 
 -- ---------- Clientes ----------
 CREATE TABLE IF NOT EXISTS customers (

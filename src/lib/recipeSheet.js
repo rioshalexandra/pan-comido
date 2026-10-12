@@ -1,11 +1,27 @@
 import { money, qty, recipeQty } from '../format';
 import { esc, printHtml } from './ticket';
+import { recipeCosts } from './costs';
 
 // Ficha de receta para imprimir o guardar como PDF: ingredientes, rinde,
 // costos y el procedimiento.
-export function printRecipe({ product, storeName, currency }) {
+export function printRecipe({ product, storeName, currency, settings }) {
   const recipe = product.recipe || {};
   const items = recipe.items || [];
+  const costs = recipeCosts(
+    {
+      ingredientUnitCost: recipe.unitCost,
+      yieldQty: recipe.yield,
+      workMinutes: product.recipe_work_minutes,
+      ovenMinutes: product.recipe_oven_minutes,
+      price: product.sale_price,
+    },
+    settings
+  );
+  const hasFull = costs && (costs.laborUnit > 0 || costs.energyUnit > 0);
+  const times = [
+    costs?.workMinutes ? `${costs.workMinutes} min de trabajo` : '',
+    costs?.ovenMinutes ? `${costs.ovenMinutes} min de horno` : '',
+  ].filter(Boolean).join(' · ');
   const rows = items
     .map(
       (item) => `<tr>
@@ -49,13 +65,15 @@ export function printRecipe({ product, storeName, currency }) {
   <div class="sheet">
     ${storeName ? `<p class="store">${esc(storeName)}</p>` : ''}
     <h1>${esc(product.name)}</h1>
-    <p class="sub">Rinde ${esc(qty(recipe.yield || 0))} ${esc(product.unit || 'un')} por tanda</p>
+    <p class="sub">Rinde ${esc(qty(recipe.yield || 0))} ${esc(product.unit || 'un')} por tanda${times ? ` · ${esc(times)}` : ''}</p>
 
     <h2>Ingredientes</h2>
     ${items.length ? `<table>${rows}</table>` : '<p class="muted">Sin ingredientes cargados.</p>'}
     <div class="costs">
       <div><span class="muted">Costo de la tanda</span><b>${esc(money(recipe.batchCost || 0, currency))}</b></div>
-      ${recipe.unitCost != null ? `<div><span class="muted">Costo por unidad</span><b>${esc(money(recipe.unitCost, currency))}</b></div>` : ''}
+      ${recipe.unitCost != null ? `<div><span class="muted">Ingredientes por unidad</span><b>${esc(money(recipe.unitCost, currency))}</b></div>` : ''}
+      ${hasFull ? `<div><span class="muted">Costo completo por unidad</span><b>${esc(money(costs.fullUnit, currency))}</b></div>` : ''}
+      ${hasFull && costs.realMargin != null ? `<div><span class="muted">Margen real</span><b>${esc(costs.realMargin)}%</b></div>` : ''}
     </div>
 
     <h2>Procedimiento</h2>

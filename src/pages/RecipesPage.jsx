@@ -5,6 +5,7 @@ import { api } from '../api';
 import RecipeEditor from '../components/RecipeEditor';
 import { money, qty } from '../format';
 import { printRecipe } from '../lib/recipeSheet';
+import { marginTone, recipeCosts } from '../lib/costs';
 import { useStore } from '../store';
 
 // Recetas: todas las recetas en un solo lugar. Lo que se carga acá es lo que
@@ -14,8 +15,15 @@ export default function RecipesPage() {
   return id ? <RecipeDetail id={id} /> : <RecipeList />;
 }
 
+const SORTS = [
+  { key: 'margin', label: 'Margen real' },
+  { key: 'hour', label: 'Ganancia por hora' },
+  { key: 'name', label: 'Nombre' },
+];
+
 function RecipeList() {
-  const { currency } = useStore();
+  const { currency, settings } = useStore();
+  const [sort, setSort] = useState('margin');
   const [rows, setRows] = useState([]);
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
@@ -31,7 +39,26 @@ function RecipeList() {
     const term = q.trim().toLowerCase();
     return rows.filter((row) => !term || row.name.toLowerCase().includes(term));
   }, [rows, q]);
-  const withRecipe = filtered.filter((row) => row.recipe_count > 0);
+  const withRecipe = filtered
+    .filter((row) => row.recipe_count > 0)
+    .map((row) => ({
+      ...row,
+      costs: recipeCosts(
+        {
+          ingredientUnitCost: row.cost_price,
+          yieldQty: row.recipe_yield,
+          workMinutes: row.recipe_work_minutes,
+          ovenMinutes: row.recipe_oven_minutes,
+          price: row.sale_price,
+        },
+        settings
+      ),
+    }))
+    .sort((a, b) => {
+      if (sort === 'name') return a.name.localeCompare(b.name);
+      const value = (row) => (sort === 'hour' ? row.costs?.perWorkHour : row.costs?.realMargin) ?? -Infinity;
+      return value(b) - value(a);
+    });
   const withoutRecipe = filtered.filter((row) => !row.recipe_count);
 
   return (
@@ -45,17 +72,45 @@ function RecipeList() {
       <input className="search-input mb-4 w-full px-4 sm:max-w-xs" placeholder="Buscar producto…" value={q} onChange={(e) => setQ(e.target.value)} />
 
       <section className="mb-6">
-        <h2 className="section-title">Con receta</h2>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="section-title m-0">Con receta</h2>
+          <div className="flex flex-wrap items-center gap-1 text-sm">
+            <span className="text-[#6b6266]">Ordenar por</span>
+            {SORTS.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={`pill-btn ${sort === item.key ? 'primary' : ''}`}
+                onClick={() => setSort(item.key)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="mb-2 text-xs text-[#6b6266]">
+          Margen real: lo que te queda de cada venta después de ingredientes, tu trabajo, luz y gas. Ganancia por hora: lo
+          que te deja cada hora que le dedicás a ese producto; cuanto más alta, más conviene producirlo.
+        </p>
         <div className="list-card">
           {withRecipe.map((row) => (
             <Link key={row.id} to={`/recetas/${row.id}`} className="list-row hover:bg-[#faf6ee]">
               <div className="min-w-0 flex-1">
                 <div className="font-medium">{row.name}</div>
                 <div className="text-xs text-[#6b6266]">
-                  {row.recipe_count} ingrediente{row.recipe_count === 1 ? '' : 's'} · rinde {qty(row.recipe_yield)} {row.unit}
+                  rinde {qty(row.recipe_yield)} {row.unit}
+                  {row.costs?.workMinutes ? ` · ${row.costs.workMinutes} min de trabajo` : ' · faltan los minutos de trabajo'}
+                  {' · '}costo {money(row.costs?.fullUnit ?? row.cost_price, currency)} c/u
                 </div>
               </div>
-              <span className="text-sm text-[#5a5155]">costo {money(row.cost_price, currency)} c/u</span>
+              <div className="text-right text-sm">
+                <div className={`font-semibold ${marginTone(row.costs?.realMargin)}`}>
+                  {row.costs?.realMargin != null ? `${row.costs.realMargin}%` : '—'}
+                </div>
+                <div className="text-xs text-[#6b6266]">
+                  {row.costs?.perWorkHour != null ? `${money(row.costs.perWorkHour, currency)}/hora` : 'sin calcular'}
+                </div>
+              </div>
             </Link>
           ))}
           {!withRecipe.length && <div className="list-empty">Todavía no hay recetas cargadas.</div>}
@@ -109,7 +164,7 @@ function RecipeDetail({ id }) {
               <button
                 type="button"
                 className="pill-btn inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
-                onClick={() => printRecipe({ product, storeName: settings?.name, currency })}
+                onClick={() => printRecipe({ product, storeName: settings?.name, currency, settings })}
               >
                 <Download size={16} /> Descargar ficha
               </button>
