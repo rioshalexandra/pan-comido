@@ -43,9 +43,9 @@ export const NAV_GROUPS = [
     title: 'Registros',
     items: [
       { to: '/produccion', label: 'Producción', icon: CookingPot },
-      { to: '/recetas', label: 'Recetas', icon: NotebookPen },
       { to: '/productos', label: 'Productos', icon: Cookie },
       { to: '/ingredientes', label: 'Ingredientes', icon: Wheat },
+      { to: '/recetas', label: 'Recetas', icon: NotebookPen },
       { to: '/clientes', label: 'Clientes', icon: Users },
       { to: '/proveedores', label: 'Proveedores', icon: Truck },
       { to: '/pedido', label: 'Pedido a proveedores', icon: ShoppingBag },
