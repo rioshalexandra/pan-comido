@@ -27,7 +27,7 @@ import PoweredBy from './PoweredBy';
 
 // Menú completo, agrupado por lo que se va a hacer:
 //   Caja       → atender al cliente (vender y tomar encargos)
-//   Producción → todo lo que se carga y registra
+//   Registros  → todo lo que se carga y registra
 //   Consultas  → para mirar lo que pasó
 //   Ajustes    → herramientas que se usan de vez en cuando
 export const NAV_GROUPS = [
@@ -40,7 +40,7 @@ export const NAV_GROUPS = [
     ],
   },
   {
-    title: 'Producción',
+    title: 'Registros',
     items: [
       { to: '/produccion', label: 'Producción', icon: CookingPot },
       { to: '/recetas', label: 'Recetas', icon: NotebookPen },
@@ -48,6 +48,7 @@ export const NAV_GROUPS = [
       { to: '/ingredientes', label: 'Ingredientes', icon: Wheat },
       { to: '/clientes', label: 'Clientes', icon: Users },
       { to: '/proveedores', label: 'Proveedores', icon: Truck },
+      { to: '/pedido', label: 'Pedido a proveedores', icon: ShoppingBag },
     ],
   },
   {
@@ -57,7 +58,6 @@ export const NAV_GROUPS = [
       { to: '/compras', label: 'Compras', icon: PackagePlus },
       { to: '/pagos', label: 'Pagos', icon: Wallet },
       { to: '/movimientos', label: 'Movimientos de stock', icon: History },
-      { to: '/pedido', label: 'Pedido a proveedores', icon: ShoppingBag },
     ],
   },
   {

@@ -20,7 +20,7 @@ Un solo servicio sirve la interfaz y la API; PostgreSQL guarda los datos.
 | **Consultas** | Ventas, compras, pagos, movimientos de stock y pedido a proveedores |
 | **Ajustes** | Precios masivos, CSV / Excel y configuración |
 
-El menú se agrupa en **Caja** (Vender, Encargos), **Producción** (Producción, Recetas, Productos, Ingredientes, Clientes, Proveedores), **Consultas** y **Ajustes**.
+El menú se agrupa en **Caja** (Vender, Encargos), **Registros** (Producción, Recetas, Productos, Ingredientes, Clientes, Proveedores, Pedido a proveedores), **Consultas** y **Ajustes**.
 
 Con `SEED_DEMO=true` y la base vacía se cargan productos, ingredientes y recetas de ejemplo de pastelería.
 
