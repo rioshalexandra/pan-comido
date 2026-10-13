@@ -3,6 +3,7 @@ import { Minus, Plus, Search, X } from 'lucide-react';
 import { api } from '../api';
 import { QUICK_METHODS, money } from '../format';
 import { useStore } from '../store';
+import { productIcon } from '../lib/icons';
 
 // Venta de mostrador en un solo paso: elegir qué se vende y cómo paga. Listo.
 export default function CheckoutModal({ onClose, onDone }) {
@@ -121,6 +122,7 @@ export default function CheckoutModal({ onClose, onDone }) {
                   {matches.map((row) => (
                     <button key={row.id} type="button" className="dropdown-item" onClick={() => add(row)}>
                       <span>
+                        {productIcon(row) && <span className="mr-1.5">{productIcon(row)}</span>}
                         {row.name}
                         <span className="ml-2 text-xs text-[#6b6266]">hay {Number(row.stock_qty)}</span>
                       </span>
@@ -134,6 +136,7 @@ export default function CheckoutModal({ onClose, onDone }) {
               <div className="mt-3 flex flex-wrap gap-2">
                 {quickProducts.map((row) => (
                   <button key={row.id} type="button" className="chip" onClick={() => add(row)}>
+                    {productIcon(row) && <span className="mr-1 text-base" aria-hidden="true">{productIcon(row)}</span>}
                     {row.name}
                   </button>
                 ))}
