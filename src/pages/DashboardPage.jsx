@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardList, CookingPot, PackageOpen, ShoppingBag, Trophy, Wallet } from 'lucide-react';
+import { ClipboardList, CookingPot, PackageOpen, ShoppingBag, Sparkles, Trophy, Wallet } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../auth';
 import { METHODS, ORDER_STATUSES, addDays, longDate, money, qty, today, ymd } from '../format';
 import { useStore } from '../store';
+import { marginTone, recipeCosts } from '../lib/costs';
+import { productIcon } from '../lib/icons';
 
 // Inicio de Pan Comido: caja del día, encargos próximos, qué hornear y qué comprar.
 export default function DashboardPage() {
-  const { currency } = useStore();
+  const { currency, settings } = useStore();
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
+  const [products, setProducts] = useState([]);
+
   useEffect(() => {
     api.dashboard(today()).then((res) => setData(res.data)).catch((err) => setError(err.message));
+    // Para "Qué conviene producir" (si falla, la tarjeta no se muestra)
+    api.products('?kind=product').then((res) => setProducts(res.data)).catch(() => {});
   }, []);
 
   if (!data && !error) return <div className="page text-[#6b6266]">Cargando…</div>;
@@ -171,6 +177,8 @@ export default function DashboardPage() {
                 )}
               </section>
 
+              <BestToProduce products={products} settings={settings} currency={currency} />
+
               {/* Lo más vendido */}
               <section>
                 <h2 className="section-title flex items-center gap-2">
@@ -193,6 +201,61 @@ export default function DashboardPage() {
         </>
       )}
     </div>
+  );
+}
+
+// Las 3 recetas que más dejan por cada hora de trabajo (solo las que tienen los minutos cargados)
+function BestToProduce({ products, settings, currency }) {
+  if (!Number(settings?.labor_hour_rate)) return null;
+  const ranked = products
+    .filter((row) => row.recipe_count > 0 && row.active !== false)
+    .map((row) => ({
+      row,
+      costs: recipeCosts(
+        {
+          ingredientUnitCost: row.cost_price,
+          yieldQty: row.recipe_yield,
+          workMinutes: row.recipe_work_minutes,
+          ovenMinutes: row.recipe_oven_minutes,
+          price: row.sale_price,
+        },
+        settings
+      ),
+    }))
+    .filter((item) => item.costs?.perWorkHour != null)
+    .sort((a, b) => b.costs.perWorkHour - a.costs.perWorkHour)
+    .slice(0, 3);
+  if (!ranked.length) return null;
+  return (
+    <section>
+      <h2 className="section-title flex items-center gap-2">
+        <Sparkles size={18} /> Qué conviene producir
+      </h2>
+      <div className="list-card">
+        {ranked.map(({ row, costs }, index) => (
+          <Link key={row.id} to={`/recetas/${row.id}`} className="list-row text-inherit no-underline hover:bg-[#faf6ee]">
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="w-4 text-xs font-semibold text-[#6b6266]">{index + 1}</span>
+              {productIcon(row) && <span aria-hidden="true">{productIcon(row)}</span>}
+              <span className="truncate">{row.name}</span>
+            </span>
+            <span className="shrink-0 text-right">
+              <strong>{money(costs.perWorkHour, currency)}</strong>
+              <span className="text-xs text-[#6b6266]"> por hora</span>
+              {costs.realMargin != null && (
+                <span className={`ml-2 text-xs ${marginTone(costs.realMargin)}`}>{costs.realMargin}%</span>
+              )}
+            </span>
+          </Link>
+        ))}
+      </div>
+      <p className="mb-0 mt-2 text-xs text-[#6b6266]">
+        Lo que te deja cada hora de trabajo, ya descontando ingredientes, luz y gas.{' '}
+        <Link to="/recetas" className="text-link">
+          Ver todas las recetas
+        </Link>
+      </p>
+    </section>
   );
 }
 

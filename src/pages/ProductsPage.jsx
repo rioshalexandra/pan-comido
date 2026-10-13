@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { api, attachmentFileUrl } from '../api';
+import { api } from '../api';
 import ProductForm, { emptyProduct, toProductForm } from '../components/ProductForm';
 import StockAdjustModal from '../components/StockAdjustModal';
 import { money, qty } from '../format';
 import { useStore } from '../store';
+import { ProductIcon } from '../lib/icons';
 
 // Textos de cada variante de la página: productos para vender o ingredientes (materia prima)
 const COPY = {
@@ -114,11 +115,7 @@ export default function ProductsPage({ kind = 'products' }) {
           return (
             <div key={row.id} className="card-tile cursor-default">
               <div className="flex items-start gap-3">
-                {row.photo_id ? (
-                  <img src={attachmentFileUrl(row.photo_id)} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
-                ) : (
-                  <span className="avatar small">{row.name.slice(0, 1).toUpperCase()}</span>
-                )}
+                <ProductIcon row={row} />
                 <div className="min-w-0 flex-1">
                   <Link className="text-link block truncate" to={`${meta.path}/${row.id}`}>
                     {row.name}
@@ -148,6 +145,7 @@ export default function ProductsPage({ kind = 'products' }) {
                   </div>
                 </div>
               </div>
+              {isIngredients && <StockBar row={row} />}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {margin != null && <span className="mr-auto text-xs text-[#6b6266]">Ganancia {margin}%</span>}
                 <button className={`pill-btn ${margin == null ? 'ml-auto' : ''}`} onClick={() => setAdjusting(row)}>
@@ -211,6 +209,24 @@ export default function ProductsPage({ kind = 'products' }) {
           }}
         />
       )}
+    </div>
+  );
+}
+
+// Barra de stock de un ingrediente: rojo si está en el crítico o menos, amarillo si queda poco, verde si sobra
+function StockBar({ row }) {
+  const stock = Number(row.stock_qty || 0);
+  const min = Number(row.min_stock || 0);
+  if (!(min > 0)) return null;
+  const pct = Math.max(3, Math.min(100, (stock / (min * 2.5)) * 100));
+  const tone = stock <= min ? 'bg-red-500' : stock <= min * 1.5 ? 'bg-amber-400' : 'bg-green-500';
+  const label = stock <= min ? 'Hay que pedir' : stock <= min * 1.5 ? 'Queda poco' : 'Bien de stock';
+  return (
+    <div className="mt-3">
+      <div className="h-2 overflow-hidden rounded-full bg-[#efe7e9]">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${pct}%` }} />
+      </div>
+      <div className="mt-1 text-[11px] text-[#6b6266]">{label}</div>
     </div>
   );
 }

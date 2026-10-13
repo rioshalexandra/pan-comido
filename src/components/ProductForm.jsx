@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { UNITS } from '../format';
+import { ICONS, guessIcon } from '../lib/icons';
 
 // Alta / edición de un producto (para vender) o de un ingrediente (materia prima).
 export default function ProductForm({ form, categories, onClose, onSave }) {
@@ -20,6 +21,9 @@ export default function ProductForm({ form, categories, onClose, onSave }) {
   function set(key, value) {
     setState((prev) => ({ ...prev, [key]: value }));
   }
+
+  // Si nunca se eligió dibujo, se propone uno según el nombre
+  const shownIcon = state.icon == null ? guessIcon(state.name) : state.icon;
 
   const title = `${state.id ? 'Editar' : 'Nuevo'} ${isIngredient ? 'ingrediente' : 'producto'}`;
 
@@ -48,6 +52,7 @@ export default function ProductForm({ form, categories, onClose, onSave }) {
               reorderQty: Number(state.reorderQty || 0) || null,
               supplierId: state.supplierId || null,
               active: state.active !== false,
+              ...(isIngredient ? {} : { icon: shownIcon }),
             });
           } catch (err) {
             setError(err.message);
@@ -67,6 +72,38 @@ export default function ProductForm({ form, categories, onClose, onSave }) {
               required
             />
           </label>
+          {!isIngredient && (
+            <div className="field sm:col-span-2">
+              <span>Dibujito (se ve en Vender y en la lista)</span>
+              <div className="flex flex-wrap gap-1.5">
+                {ICONS.map((icon) => (
+                  <button
+                    key={icon}
+                    type="button"
+                    aria-label={`Dibujito ${icon}`}
+                    aria-pressed={shownIcon === icon}
+                    className={`grid h-10 w-10 place-items-center rounded-lg border text-xl ${
+                      shownIcon === icon ? 'border-[var(--gold)] bg-[#f7efe0] ring-2 ring-[var(--gold)]' : 'border-[var(--line)] bg-white'
+                    }`}
+                    onClick={() => set('icon', icon)}
+                  >
+                    {icon}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  aria-pressed={shownIcon === ''}
+                  className={`h-10 rounded-lg border px-3 text-xs ${
+                    shownIcon === '' ? 'border-[var(--gold)] bg-[#f7efe0] ring-2 ring-[var(--gold)]' : 'border-[var(--line)] bg-white'
+                  }`}
+                  onClick={() => set('icon', '')}
+                >
+                  Sin dibujo
+                </button>
+              </div>
+              <small className="text-xs text-[#6b6266]">Si el producto tiene foto, se ve la foto.</small>
+            </div>
+          )}
           <label className="field">
             <span>Categoría</span>
             <select value={state.categoryId} onChange={(e) => set('categoryId', e.target.value)}>
@@ -218,6 +255,7 @@ export function emptyProduct(kind = 'product') {
     reorderQty: '',
     supplierId: '',
     active: true,
+    icon: null,
     recipeCount: 0,
   };
 }
@@ -239,6 +277,7 @@ export function toProductForm(row) {
     reorderQty: row.reorder_qty ? String(Number(row.reorder_qty)) : '',
     supplierId: row.supplier_id ? String(row.supplier_id) : '',
     active: row.active !== false,
+    icon: row.icon ?? null,
     recipeCount: row.recipe_count || (row.recipe?.items?.length ?? 0),
   };
 }

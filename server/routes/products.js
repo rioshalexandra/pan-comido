@@ -288,14 +288,16 @@ async function saveProduct(client, id, body = {}) {
     kind,
     Number(body.reorderQty) > 0 ? qty(body.reorderQty) : null,
     body.supplierId ? Number(body.supplierId) : null,
+    // Dibujito: si no viene se deja el que tenía; '' = sin dibujo
+    body.icon === undefined || body.icon === null ? null : String(body.icon).trim().slice(0, 16),
   ];
   if (id) {
     const result = await client.query(
       `UPDATE products
        SET sku = $1, name = $2, description = $3, category_id = $4, unit = $5, barcode = $6,
            cost_price = $7, sale_price = $8, min_stock = $9, active = $10, kind = $11,
-           reorder_qty = $12, supplier_id = $13, updated_at = now()
-       WHERE id = $14
+           reorder_qty = $12, supplier_id = $13, icon = COALESCE($14, icon), updated_at = now()
+       WHERE id = $15
        RETURNING *`,
       [...values, id]
     );
@@ -309,8 +311,8 @@ async function saveProduct(client, id, body = {}) {
   const inserted = await client.query(
     `INSERT INTO products
        (sku, name, description, category_id, unit, barcode, cost_price, sale_price, min_stock, active, kind,
-        reorder_qty, supplier_id, stock_qty)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 0)
+        reorder_qty, supplier_id, icon, stock_qty)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 0)
      RETURNING *`,
     values
   );

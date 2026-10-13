@@ -34,6 +34,8 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
   }, [editing, focusNotes]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // Cuántas tandas se van a hacer: multiplica las cantidades que se muestran
+  const [batches, setBatches] = useState(1);
 
   useEffect(() => {
     api.products('?kind=ingredient').then((res) => setIngredients(res.data)).catch((err) => setError(err.message));
@@ -250,20 +252,36 @@ export default function RecipeEditor({ product, onSaved, title = 'Receta' }) {
           </div>
         ) : (
           <>
+            <div className="list-row flex-wrap bg-[#faf6ee]">
+              <label htmlFor={`tandas-${product.id}`} className="font-medium">
+                Tandas a hacer: <strong>{batches}</strong>
+              </label>
+              <input
+                id={`tandas-${product.id}`}
+                type="range"
+                min="1"
+                max="10"
+                value={batches}
+                onChange={(e) => setBatches(Number(e.target.value))}
+                className="min-w-0 flex-[1_1_160px] accent-[var(--gold)]"
+                style={{ border: 'none', background: 'transparent', padding: 0, boxShadow: 'none', minHeight: 24 }}
+              />
+            </div>
             {product.recipe.items.map((item) => (
               <div key={item.id} className="list-row">
                 <span>{item.name}</span>
                 <span className="text-[#5a5155]">
-                  {recipeQty(item.qty, item.unit)} · {money(item.line_cost, currency)}
+                  {recipeQty(item.qty * batches, item.unit)} · {money(item.line_cost * batches, currency)}
                 </span>
               </div>
             ))}
-            <div className="list-row bg-[#f7efe0]">
+            <div className="list-row flex-wrap bg-[#f7efe0]">
               <span>
-                Rinde <strong>{Number(product.recipe.yield)}</strong> {product.unit}
+                Rinde <strong>{round(Number(product.recipe.yield) * batches, 2)}</strong> {product.unit}
+                {batches > 1 && <span className="text-[#6b6266]"> ({batches} tandas)</span>}
               </span>
               <span>
-                Tanda {money(product.recipe.batchCost, currency)} · unidad{' '}
+                {batches > 1 ? 'Total' : 'Tanda'} {money(product.recipe.batchCost * batches, currency)} · unidad{' '}
                 <strong>{money(product.recipe.unitCost, currency)}</strong>
               </span>
             </div>
@@ -316,6 +334,7 @@ function CostBreakdown({ costs, currency, price, missingSettings, onAddMinutes }
         />
         <Line label={<strong>Costo completo</strong>} value={<strong>{money(costs.fullUnit, currency)}</strong>} />
       </div>
+      {price > 0 && <PriceBar costs={costs} price={price} currency={currency} />}
       {price > 0 && (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
           <Stat label="Precio de venta" value={money(price, currency)} />
@@ -354,6 +373,44 @@ function CostBreakdown({ costs, currency, price, missingSettings, onAddMinutes }
           )}
         </p>
       )}
+    </div>
+  );
+}
+
+// Barra de colores: de cada peso del precio, cuánto va a ingredientes, trabajo, luz y gas, y cuánto queda
+const BAR_PARTS = [
+  { key: 'ingredientsUnit', label: 'Ingredientes', color: '#d9a441' },
+  { key: 'laborUnit', label: 'Tu trabajo', color: '#8a5a7a' },
+  { key: 'energyUnit', label: 'Luz y gas', color: '#e07a5f' },
+];
+
+function PriceBar({ costs, price, currency }) {
+  const left = price - costs.fullUnit;
+  const parts = [
+    ...BAR_PARTS.map((part) => ({ ...part, value: costs[part.key] })),
+    { key: 'left', label: left >= 0 ? 'Te queda' : 'Perdés', color: left >= 0 ? '#4c9a6a' : '#c0392b', value: Math.abs(left) },
+  ].filter((part) => part.value > 0);
+  const total = parts.reduce((sum, part) => sum + part.value, 0) || 1;
+  return (
+    <div className="mt-3">
+      <div className="mb-1 text-xs text-[#6b6266]">Cómo se reparte el precio de venta</div>
+      <div className="flex h-4 overflow-hidden rounded-full bg-[#efe7e9]" role="img" aria-label="Reparto del precio">
+        {parts.map((part) => (
+          <div
+            key={part.key}
+            style={{ width: `${(part.value / total) * 100}%`, background: part.color }}
+            title={`${part.label}: ${money(part.value, currency)}`}
+          />
+        ))}
+      </div>
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#5a5155]">
+        {parts.map((part) => (
+          <span key={part.key} className="inline-flex items-center gap-1">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: part.color }} />
+            {part.label} {Math.round((part.value / price) * 100)}%
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

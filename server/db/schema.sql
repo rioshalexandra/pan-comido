@@ -98,6 +98,8 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS recipe_notes TEXT;
 -- Costo completo de una receta: minutos de trabajo y de horno por tanda
 ALTER TABLE products ADD COLUMN IF NOT EXISTS recipe_work_minutes NUMERIC(8,2);
 ALTER TABLE products ADD COLUMN IF NOT EXISTS recipe_oven_minutes NUMERIC(8,2);
+-- Dibujito (emoji) del producto para Vender y la lista; '' = sin dibujo
+ALTER TABLE products ADD COLUMN IF NOT EXISTS icon TEXT;
 -- Valor de la hora de trabajo y gasto de luz y gas para calcular el margen real
 ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS labor_hour_rate NUMERIC(12,2) NOT NULL DEFAULT 0;
 ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS energy_monthly NUMERIC(12,2) NOT NULL DEFAULT 0;
@@ -314,4 +316,27 @@ CREATE INDEX IF NOT EXISTS recipe_items_product_idx ON recipe_items (product_id)
 CREATE INDEX IF NOT EXISTS production_date_idx ON production_batches (produced_at DESC);
 CREATE INDEX IF NOT EXISTS stock_movements_product_idx ON stock_movements (product_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS stock_movements_ref_idx ON stock_movements (ref_type, ref_id);
-CREATE INDEX IF NOT EXISTS attachments_entity_idx ON attachments (entity_type, entity_id)
+CREATE INDEX IF NOT EXISTS attachments_entity_idx ON attachments (entity_type, entity_id);
+
+-- ---------- Dibujito automático ----------
+-- A los productos que nunca tuvieron dibujo se les pone uno según el nombre.
+-- Si la dueña elige "sin dibujo" queda '' y no se vuelve a completar.
+UPDATE products SET icon = CASE
+    WHEN lower(name) ~ 'cookie|galleti|pepa|masas' THEN '🍪'
+    WHEN lower(name) ~ 'alfajor' THEN '🥮'
+    WHEN lower(name) ~ 'lim[oó]n' THEN '🍋'
+    WHEN lower(name) ~ 'medialuna|croissant|factura' THEN '🥐'
+    WHEN lower(name) ~ 'muffin|cupcake' THEN '🧁'
+    WHEN lower(name) ~ 'brownie|chocolate' THEN '🍫'
+    WHEN lower(name) ~ 'zanahoria|carrot' THEN '🥕'
+    WHEN lower(name) ~ 'tarta|pie|lemon' THEN '🥧'
+    WHEN lower(name) ~ 'bud[ií]n|bizcocho|porci[oó]n' THEN '🍰'
+    WHEN lower(name) ~ 'torta|cake' THEN '🎂'
+    WHEN lower(name) ~ 'dona|rosquilla' THEN '🍩'
+    WHEN lower(name) ~ 'caja|combo|box|regalo' THEN '🎁'
+    WHEN lower(name) ~ 'baguette' THEN '🥖'
+    WHEN lower(name) ~ '(^|\s)pan' THEN '🍞'
+    WHEN lower(name) ~ 'caf[eé]' THEN '☕'
+    ELSE '🧁'
+  END
+WHERE kind = 'product' AND icon IS NULL;
