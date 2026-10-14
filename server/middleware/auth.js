@@ -29,6 +29,26 @@ export async function login(username, password) {
   return { token, user: publicUser(user), expiresAt: expires.toISOString() };
 }
 
+// Cambiar la propia contraseña: hay que saber la actual. Cierra las otras sesiones abiertas.
+export async function changePassword(userId, currentPassword, newPassword, keepToken) {
+  const result = await query('SELECT * FROM users WHERE id = $1', [userId]);
+  const user = result.rows[0];
+  if (!user || !(await bcrypt.compare(String(currentPassword || ''), user.password_hash))) {
+    const err = new Error('La contraseña actual no es correcta');
+    err.status = 400;
+    throw err;
+  }
+  const next = String(newPassword || '');
+  if (next.length < 6) {
+    const err = new Error('La contraseña nueva tiene que tener al menos 6 caracteres');
+    err.status = 400;
+    throw err;
+  }
+  const hash = await bcrypt.hash(next, 10);
+  await query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, userId]);
+  await query('DELETE FROM sessions WHERE user_id = $1 AND token <> $2', [userId, keepToken || '']);
+}
+
 export async function logout(token) {
   if (token) {
     await query('DELETE FROM sessions WHERE token = $1', [token]);

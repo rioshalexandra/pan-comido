@@ -68,6 +68,7 @@ export const api = {
   login: (body) => request('/api/auth/login', { method: 'POST', body }),
   me: () => request('/api/auth/me'),
   logout: () => request('/api/auth/logout', { method: 'POST', body: {} }),
+  changePassword: (body) => request('/api/auth/password', { method: 'POST', body }),
   settings: () => request('/api/settings'),
   saveSettings: (body) => request('/api/settings', { method: 'PUT', body }),
   dashboard: (today) => request(`/api/dashboard${today ? `?today=${today}` : ''}`),
