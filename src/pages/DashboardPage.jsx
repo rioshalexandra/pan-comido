@@ -35,10 +35,11 @@ export default function DashboardPage() {
       {data && (
         <>
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Kpi label="Ventas de hoy" value={money(data.todaySales.total, currency)} hint={`${data.todaySales.count} ventas`} />
-            <Kpi label="Ventas del mes" value={money(data.month.total, currency)} hint={`${data.month.count} ventas`} />
+            <Kpi icon="🛍️" label="Ventas de hoy" value={money(data.todaySales.total, currency)} hint={`${data.todaySales.count} ventas`} />
+            <Kpi icon="📅" label="Ventas del mes" value={money(data.month.total, currency)} hint={`${data.month.count} ventas`} />
             <Kpi
               className="col-span-2 sm:col-span-1"
+              icon="💰"
               label="Ganancia del mes"
               value={money(data.month.margin, currency)}
               hint="Precio menos costo"
@@ -234,10 +235,17 @@ function BestToProduce({ products, settings, currency }) {
   );
 }
 
-function Kpi({ label, value, hint, className = '' }) {
+function Kpi({ icon, label, value, hint, className = '' }) {
   return (
     <div className={`kpi-card ${className}`}>
-      <div className="kpi-label">{label}</div>
+      <div className="kpi-label">
+        {icon && (
+          <span className="mr-1.5 align-middle text-lg" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+        {label}
+      </div>
       <div className="kpi-value">{value}</div>
       <div className="mt-1 text-xs text-[#6b6266]">{hint}</div>
     </div>
