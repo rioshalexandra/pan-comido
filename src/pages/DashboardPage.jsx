@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardList, CookingPot, PackageOpen, ShoppingBag, Sparkles, Trophy, Wallet } from 'lucide-react';
+import { ClipboardList, CookingPot, PackageOpen, ShoppingBag, Sparkles, Trophy } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../auth';
-import { METHODS, ORDER_STATUSES, addDays, longDate, money, qty, today, ymd } from '../format';
+import { ORDER_STATUSES, addDays, longDate, money, qty, today, ymd } from '../format';
 import { useStore } from '../store';
 import { marginTone, recipeCosts } from '../lib/costs';
 import { productIcon } from '../lib/icons';
 
-// Inicio de Pan Comido: caja del día, encargos próximos, qué hornear y qué comprar.
+// Inicio de Pan Comido: ventas del día, encargos próximos, qué hornear y qué comprar.
 export default function DashboardPage() {
   const { currency, settings } = useStore();
   const { user } = useAuth();
@@ -25,7 +25,6 @@ export default function DashboardPage() {
 
   if (!data && !error) return <div className="page text-[#6b6266]">Cargando…</div>;
 
-  const cashTotal = (data?.cashToday || []).reduce((sum, row) => sum + Number(row.total), 0);
   const firstName = String(user?.name || '').split(' ')[0];
 
   return (
@@ -126,30 +125,6 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid content-start gap-6">
-              {/* Caja del día */}
-              <section>
-                <h2 className="section-title flex items-center gap-2">
-                  <Wallet size={18} /> Caja de hoy
-                </h2>
-                <div className="list-card">
-                  {data.cashToday.map((row) => (
-                    <div key={row.method} className="list-row">
-                      <span>{METHODS[row.method] || row.method}</span>
-                      <span className="font-medium">{money(row.total, currency)}</span>
-                    </div>
-                  ))}
-                  {data.cashToday.length > 0 && (
-                    <div className="list-row bg-[#f7efe0]">
-                      <span>
-                        Total <span className="text-xs text-[#6b6266]">(incluye señas)</span>
-                      </span>
-                      <strong>{money(cashTotal, currency)}</strong>
-                    </div>
-                  )}
-                  {!data.cashToday.length && <div className="list-empty">Todavía no se cobró nada hoy.</div>}
-                </div>
-              </section>
-
               {/* Para comprar */}
               <section>
                 <h2 className="section-title flex items-center gap-2">
