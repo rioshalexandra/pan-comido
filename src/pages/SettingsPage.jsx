@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api';
+import { useAuth } from '../auth';
 import { useStore } from '../store';
 import { money } from '../format';
 import { ovenHourCost } from '../lib/costs';
@@ -126,6 +127,70 @@ export default function SettingsPage() {
           {saved ? 'Guardado' : 'Guardar'}
         </button>
       </form>
+      <PasswordForm />
     </div>
+  );
+}
+
+// Cada usuario puede cambiar su contraseña, así solo la sabe quien usa la app
+function PasswordForm() {
+  const { user } = useAuth();
+  const empty = { currentPassword: '', newPassword: '', repeat: '' };
+  const [state, setState] = useState(empty);
+  const [message, setMessage] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const set = (key) => (ev) => setState((prev) => ({ ...prev, [key]: ev.target.value }));
+
+  return (
+    <form
+      className="mt-8 max-w-xl"
+      onSubmit={async (ev) => {
+        ev.preventDefault();
+        setMessage(null);
+        if (state.newPassword !== state.repeat) {
+          setMessage({ error: true, text: 'Las dos contraseñas nuevas no son iguales.' });
+          return;
+        }
+        setBusy(true);
+        try {
+          await api.changePassword({ currentPassword: state.currentPassword, newPassword: state.newPassword });
+          setState(empty);
+          setMessage({ error: false, text: 'Listo, tu contraseña cambió. La próxima vez entrá con la nueva.' });
+        } catch (err) {
+          setMessage({ error: true, text: err.message });
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <fieldset className="space-y-3 rounded-2xl border border-[var(--line)] p-4">
+        <legend className="px-1 font-semibold">Cambiar contraseña</legend>
+        {user?.username && (
+          <p className="m-0 text-sm text-[#6b6266]">
+            Tu usuario es <strong>{user.username}</strong>.
+          </p>
+        )}
+        {message && (
+          <div className={`rounded-lg px-3 py-2 text-sm ${message.error ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-800'}`}>
+            {message.text}
+          </div>
+        )}
+        <label className="field">
+          <span>Contraseña actual</span>
+          <input type="password" autoComplete="current-password" value={state.currentPassword} onChange={set('currentPassword')} required />
+        </label>
+        <label className="field">
+          <span>Contraseña nueva (mínimo 6 caracteres)</span>
+          <input type="password" autoComplete="new-password" minLength={6} value={state.newPassword} onChange={set('newPassword')} required />
+        </label>
+        <label className="field">
+          <span>Repetí la contraseña nueva</span>
+          <input type="password" autoComplete="new-password" minLength={6} value={state.repeat} onChange={set('repeat')} required />
+        </label>
+        <button className="pill-btn primary" type="submit" disabled={busy}>
+          Cambiar contraseña
+        </button>
+      </fieldset>
+    </form>
   );
 }
