@@ -2,7 +2,8 @@
 
 App para pasteleras emprendedoras: cargás los ingredientes como los comprás y las recetas, y la app te dice
 cuánto te cuesta cada unidad (con tu trabajo y la luz y el gas), cuánto ganás, a cuánto conviene venderla
-y te avisa cuando sube un ingrediente. También descuenta los ingredientes al producir y arma el pedido a proveedores por WhatsApp.
+y te avisa cuando sube un ingrediente. También descuenta los ingredientes al producir, arma el pedido a proveedores por WhatsApp y lleva las compras
+(suman al stock y actualizan precios) con sus pagos en efectivo o transferencia: cuánto pagaste en el mes y cuánto debés.
 
 Una sola app sirve a todas las compradoras: la administradora le da a cada una su usuario y contraseña
 desde **Cuentas de clientas**, con vencimiento opcional (1 mes, 1 año o para siempre).

@@ -6,6 +6,9 @@ import { EXAMPLE_SETTINGS, INGREDIENTS, RECIPES } from './examples';
 
 const VERSION = 1;
 const TABLES = ['suppliers', 'ingredients', 'price_history', 'recipes', 'recipe_items', 'production', 'production_items'];
+// Compras a proveedores y sus pagos (llegaron después: las copias viejas no las traen)
+const EXTRA_TABLES = ['purchases', 'purchase_items', 'payments'];
+const METHODS = ['efectivo', 'transferencia'];
 
 class LocalError extends Error {
   constructor(status, message) {
@@ -34,7 +37,7 @@ let db = null;
 
 function emptyDb(settings = {}) {
   const data = { version: VERSION, seq: 0, created_at: now(), last_backup_at: null, changed_at: null };
-  for (const t of TABLES) data[t] = [];
+  for (const t of [...TABLES, ...EXTRA_TABLES]) data[t] = [];
   data.settings = {
     business_name: text(settings.business_name, 80),
     labor_hour_rate: 0,
@@ -67,6 +70,7 @@ export function openLocal(me) {
   }
   if (stored && stored.version === VERSION) {
     db = stored;
+    for (const t of EXTRA_TABLES) db[t] ||= [];
   } else {
     db = emptyDb(me.settings || {});
     if (me.examples) seedExamples();
@@ -118,6 +122,7 @@ export async function restoreFile(file) {
   if (data.version > VERSION) fail(400, 'Esta copia es de una versión más nueva de la app. Recargá la página y probá de nuevo.');
   delete data.app;
   db = { ...emptyDb(), ...data, version: VERSION, last_backup_at: now() };
+  for (const t of EXTRA_TABLES) if (!Array.isArray(db[t])) db[t] = [];
   save();
   return { ...db.settings };
 }
@@ -237,6 +242,34 @@ function saveRecipe(b, id) {
   return { data: recipeWithItems(recipe) };
 }
 
+// ---------- compras a proveedores y pagos ----------
+function purchaseRow(p) {
+  const payments = db.payments.filter((x) => x.purchase_id === p.id).sort((a, b) => a.paid_at.localeCompare(b.paid_at));
+  const paid = payments.reduce((sum, x) => sum + x.amount, 0);
+  const items = db.purchase_items
+    .filter((x) => x.purchase_id === p.id)
+    .map((x) => {
+      const i = db.ingredients.find((ing) => ing.id === x.ingredient_id);
+      return { ...x, name: i?.name || x.name, unit: i?.unit || x.unit };
+    });
+  const supplier = db.suppliers.find((s) => s.id === p.supplier_id);
+  return { ...p, supplier_name: supplier?.name || p.supplier_name || 'Sin proveedor', items, payments, paid, balance: Math.max(0, p.total - paid) };
+}
+
+const ownPurchase = (id) => db.purchases.find((p) => p.id === Number(id)) || fail(404, 'No encontré esa compra');
+
+function addPayment(purchase, b) {
+  const amount = Math.round(num(b.amount) * 100) / 100;
+  if (!(amount > 0)) fail(400, 'Poné cuánto pagaste');
+  const balance = purchaseRow(purchase).balance;
+  if (amount > balance + 0.5) fail(400, `Esta compra debe ${Math.round(balance)}. No se puede pagar más que eso.`);
+  if (!METHODS.includes(b.method)) fail(400, 'Elegí si pagaste en efectivo o por transferencia');
+  db.payments.push({
+    id: nextId(), purchase_id: purchase.id, supplier_id: purchase.supplier_id, amount, method: b.method,
+    paid_at: isDate(b.paid_at) ? b.paid_at : today(), notes: text(b.notes, 200),
+  });
+}
+
 // ---------- las direcciones ----------
 const routes = [
   ['PUT', /^\/api\/settings$/, (b) => {
@@ -268,6 +301,9 @@ const routes = [
     return { ok: true };
   }],
   ['DELETE', /^\/api\/suppliers\/(\d+)$/, (b, id) => {
+    if (db.purchases.some((p) => p.supplier_id === Number(id) && purchaseRow(p).balance > 0.5)) {
+      fail(400, 'Le debés plata a este proveedor. Cargá el pago antes de borrarlo.');
+    }
     db.suppliers = db.suppliers.filter((s) => s.id !== Number(id));
     for (const i of db.ingredients) if (i.supplier_id === Number(id)) i.supplier_id = null;
     save();
@@ -320,6 +356,7 @@ const routes = [
     db.ingredients = db.ingredients.filter((i) => i.id !== row.id);
     db.price_history = db.price_history.filter((h) => h.ingredient_id !== row.id);
     db.production_items = db.production_items.filter((p) => p.ingredient_id !== row.id);
+    // Las compras viejas quedan en el historial con el nombre guardado
     save();
     return { ok: true };
   }],
@@ -364,6 +401,62 @@ const routes = [
     db.recipes = db.recipes.filter((x) => x.id !== r.id);
     db.recipe_items = db.recipe_items.filter((x) => x.recipe_id !== r.id);
     for (const p of db.production) if (p.recipe_id === r.id) p.recipe_id = null;
+    save();
+    return { ok: true };
+  }],
+
+  // compras: suman al stock y actualizan el precio de cada ingrediente
+  ['GET', /^\/api\/purchases$/, () => ({
+    data: db.purchases.map(purchaseRow).sort((x, y) => y.purchased_at.localeCompare(x.purchased_at) || y.id - x.id),
+  })],
+  ['POST', /^\/api\/purchases$/, (b) => {
+    const supplier = validSupplier(b.supplier_id);
+    const lines = (Array.isArray(b.items) ? b.items : [])
+      .map((x) => ({ ing: db.ingredients.find((i) => i.id === Number(x.ingredient_id)), packs: num(x.packs), packQty: num(x.pack_qty), packPrice: Math.max(0, num(x.pack_price)) }))
+      .filter((x) => x.ing && x.packs > 0);
+    if (!lines.length) fail(400, 'Agregá al menos un producto con su cantidad');
+    if (lines.some((x) => !(x.packQty > 0))) fail(400, 'Poné cuánto trae cada paquete');
+    const pid = nextId();
+    let total = 0;
+    for (const { ing, packs, packQty, packPrice } of lines) {
+      priceChange(ing, packQty, packPrice);
+      ing.pack_qty = packQty;
+      ing.pack_price = packPrice;
+      ing.stock_qty += packs * packQty;
+      if (supplier && !ing.supplier_id) ing.supplier_id = supplier;
+      total += packs * packPrice;
+      db.purchase_items.push({ id: nextId(), purchase_id: pid, ingredient_id: ing.id, name: ing.name, unit: ing.unit, packs, pack_qty: packQty, pack_price: packPrice, qty: packs * packQty, subtotal: packs * packPrice });
+    }
+    const purchase = {
+      id: pid, supplier_id: supplier, purchased_at: isDate(b.purchased_at) ? b.purchased_at : today(), total: Math.round(total * 100) / 100,
+      notes: text(b.notes, 300), created_at: now(),
+    };
+    db.purchases.push(purchase);
+    if (b.pay_method) addPayment(purchase, { amount: purchase.total, method: b.pay_method, paid_at: purchase.purchased_at });
+    save();
+    return { data: purchaseRow(purchase) };
+  }],
+  // Borrar una compra cargada por error: saca del stock lo que había sumado (el precio queda como está)
+  ['DELETE', /^\/api\/purchases\/(\d+)$/, (b, id) => {
+    const p = ownPurchase(id);
+    for (const item of db.purchase_items.filter((x) => x.purchase_id === p.id)) {
+      const ing = db.ingredients.find((i) => i.id === item.ingredient_id);
+      if (ing) ing.stock_qty -= item.qty;
+    }
+    db.purchases = db.purchases.filter((x) => x.id !== p.id);
+    db.purchase_items = db.purchase_items.filter((x) => x.purchase_id !== p.id);
+    db.payments = db.payments.filter((x) => x.purchase_id !== p.id);
+    save();
+    return { ok: true };
+  }],
+  ['POST', /^\/api\/purchases\/(\d+)\/payments$/, (b, id) => {
+    const p = ownPurchase(id);
+    addPayment(p, b);
+    save();
+    return { data: purchaseRow(p) };
+  }],
+  ['DELETE', /^\/api\/payments\/(\d+)$/, (b, id) => {
+    db.payments = db.payments.filter((x) => x.id !== Number(id));
     save();
     return { ok: true };
   }],

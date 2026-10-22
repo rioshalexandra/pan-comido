@@ -6,7 +6,7 @@ export default function MorePage() {
   const { user, logout, sellerPhone, appName } = useStore();
   const items = [
     { to: '/copia', label: 'Copia de seguridad', hint: 'Tus datos están en este celular: guardá una copia', icon: '💾' },
-    { to: '/proveedores', label: 'Proveedores y pedido', hint: 'Qué hay que comprar y a quién', icon: '🚚' },
+    { to: '/proveedores', label: 'Proveedores y compras', hint: 'Pedido, compras, pagos y lo que debés', icon: '🚚' },
     { to: '/ajustes', label: 'Ajustes', hint: 'Tu hora, luz y gas, margen y contraseña', icon: '⚙️' },
   ];
   if (user.role === 'admin') items.push({ to: '/admin', label: 'Cuentas de clientas', hint: 'Dar acceso a quien compra la app', icon: '🔑' });

@@ -8,7 +8,7 @@ const MAIN = [
   { to: '/produccion', label: 'Producción', icon: '👩‍🍳' },
 ];
 const EXTRA = [
-  { to: '/proveedores', label: 'Proveedores y pedido', icon: '🚚' },
+  { to: '/proveedores', label: 'Proveedores y compras', icon: '🚚' },
   { to: '/ajustes', label: 'Ajustes', icon: '⚙️' },
 ];
 

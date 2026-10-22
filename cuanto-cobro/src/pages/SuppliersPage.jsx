@@ -5,13 +5,16 @@ import { useStore } from '../store';
 import { money, whatsappLink } from '../lib/format';
 import { qtyText } from '../lib/units';
 import { Header, Loading, Modal } from '../components/ui';
+import PurchasesSection, { PurchaseModal } from './PurchasesSection';
 
 // Proveedores y pedido: junta lo que llegó al mínimo, agrupado por proveedor,
-// y arma el mensaje de WhatsApp.
+// y arma el mensaje de WhatsApp. Abajo, las compras (suman al stock) y los pagos.
 export default function SuppliersPage() {
   const { settings, user } = useStore();
   const { data: suppliers, reload, error } = useData('/api/suppliers');
-  const { data: ingredients } = useData('/api/ingredients');
+  const { data: ingredients, reload: reloadIngredients } = useData('/api/ingredients');
+  const { data: purchases, reload: reloadPurchases } = useData('/api/purchases');
+  const [buying, setBuying] = useState(null);
   const [lines, setLines] = useState({});
   const [editing, setEditing] = useState(null);
   const [copied, setCopied] = useState('');
@@ -54,15 +57,26 @@ export default function SuppliersPage() {
 
   async function remove(s) {
     if (!confirm(`¿Borrar a ${s.name}? Sus ingredientes quedan sin proveedor.`)) return;
-    await api.del(`/api/suppliers/${s.id}`);
-    reload();
+    try {
+      await api.del(`/api/suppliers/${s.id}`);
+      reload();
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
-  if (!suppliers || !ingredients) return <Loading error={error} />;
+  if (!suppliers || !ingredients || !purchases) return <Loading error={error} />;
+
+  const debtOf = (id) => purchases.filter((p) => p.supplier_id === id).reduce((sum, p) => sum + p.balance, 0);
+  // Lo que llegó del pedido se carga como compra con lo tildado
+  const fromOrder = (group) => ({
+    supplier_id: group.key || null,
+    lines: group.rows.filter((i) => lines[i.id]?.checked && Number(lines[i.id]?.packs) > 0).map((i) => ({ ing: i, packs: lines[i.id].packs })),
+  });
 
   return (
     <div className="flex flex-col gap-5">
-      <Header title="Proveedores y pedido" subtitle="Lo que hay que comprar, listo para mandar por WhatsApp." />
+      <Header title="Proveedores y compras" subtitle="Lo que hay que pedir, lo que compraste y lo que debés." />
 
       <section>
         <div className="section-title mb-2">Pedido de hoy</div>
@@ -108,13 +122,24 @@ export default function SuppliersPage() {
                   <button className="btn btn-sm" onClick={() => copy(group)}>
                     {copied === group.key ? '¡Copiado!' : 'Copiar pedido'}
                   </button>
+                  <button className="btn btn-sm" onClick={() => setBuying(fromOrder(group))}>
+                    📦 Llegó: cargar compra
+                  </button>
                 </div>
-                <p className="mt-2 text-xs text-cocoa-soft">Cuando llegue la mercadería, tocá "Compré" en Ingredientes para sumarla al stock.</p>
               </div>
             ))}
           </div>
         )}
       </section>
+
+      <PurchasesSection
+        purchases={purchases}
+        onNewPurchase={setBuying}
+        onChanged={() => {
+          reloadPurchases();
+          reloadIngredients();
+        }}
+      />
 
       <section>
         <div className="mb-2 flex items-center justify-between">
@@ -129,6 +154,7 @@ export default function SuppliersPage() {
           <div className="card divide-y divide-line">
             {suppliers.map((s) => {
               const count = ingredients.filter((i) => i.supplier_id === s.id).length;
+              const debt = debtOf(s.id);
               return (
                 <div key={s.id} className="flex items-center gap-3 px-4 py-3">
                   <div className="min-w-0 flex-1">
@@ -137,6 +163,7 @@ export default function SuppliersPage() {
                       {s.phone || 'sin teléfono'} · {count} ingrediente{count === 1 ? '' : 's'}
                       {s.notes ? ` · ${s.notes}` : ''}
                     </div>
+                    {debt > 0.5 && <div className="text-xs font-bold text-bad">Le debés {money(debt)}</div>}
                   </div>
                   {s.phone && (
                     <a className="btn btn-sm" href={whatsappLink(s.phone, 'Hola! ')} target="_blank" rel="noreferrer" aria-label="WhatsApp">
@@ -155,6 +182,20 @@ export default function SuppliersPage() {
           </div>
         )}
       </section>
+
+      {buying && (
+        <PurchaseModal
+          preset={buying}
+          suppliers={suppliers}
+          ingredients={ingredients}
+          onClose={() => setBuying(null)}
+          onSaved={() => {
+            setBuying(null);
+            reloadPurchases();
+            reloadIngredients();
+          }}
+        />
+      )}
 
       {editing && (
         <SupplierModal
