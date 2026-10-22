@@ -8,7 +8,8 @@
     "worker": "wrangler dev",
     "db:local": "wrangler d1 migrations apply cuanto-cobro --local",
     "db:remote": "wrangler d1 migrations apply cuanto-cobro --remote",
-    "deploy": "vite build && wrangler d1 migrations apply cuanto-cobro --remote && wrangler deploy"
+    "deploy": "vite build && wrangler d1 migrations apply cuanto-cobro --remote && wrangler deploy",
+    "deploy:embedded": "vite build && node scripts/embed-assets.mjs && wrangler d1 migrations apply cuanto-cobro --remote -c wrangler.embedded.jsonc && wrangler deploy -c wrangler.embedded.jsonc"
   },
   "dependencies": {
     "hono": "^4.13.13",

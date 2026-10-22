@@ -13,7 +13,7 @@
       "binding": "DB",
       "database_name": "cuanto-cobro",
       // Lo completa "npx wrangler d1 create cuanto-cobro" (ver README)
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "11e06a05-db6f-459e-bef6-34534b49f5e3",
       "migrations_dir": "migrations"
     }
   ],

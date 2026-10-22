@@ -49,3 +49,10 @@ npm run build && npx wrangler dev           # http://localhost:8787 (usuario adm
 - Margen real = (precio − costo completo) ÷ precio.
 - Ganancia por hora = (precio − ingredientes − luz y gas) × rinde ÷ horas de trabajo.
 - Precio sugerido = costo completo ÷ (1 − margen buscado), redondeado para arriba.
+
+## Publicarla desde un entorno con proxy (Claude en la nube)
+
+Si `npm run deploy` falla con `401 Unauthorized` al subir los archivos ("Asset upload failed"), usá
+`npm run deploy:embedded`: mete la app dentro del Worker (`scripts/embed-assets.mjs` + `worker/embedded.js`,
+configurado en `wrangler.embedded.jsonc`) y la publica sin la subida aparte de archivos. Así está publicada hoy
+en https://cuanto-cobro.rioshalexandra.workers.dev. Si cambiás `database_id`, cambialo en los dos `wrangler*.jsonc`.
