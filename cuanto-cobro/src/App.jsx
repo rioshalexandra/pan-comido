@@ -42,7 +42,18 @@ export default function App() {
   if (me === undefined) {
     return <div className="grid min-h-screen place-items-center text-cocoa-soft">Cargando…</div>;
   }
-  if (!me) return <LoginPage onLogin={load} />;
+  // El link .../demo siempre ofrece entrar a la demo, aunque ya haya otra cuenta abierta en este aparato
+  const demoLink = window.location.pathname.replace(/\/$/, '') === '/demo';
+  if (!me || (demoLink && me.user.username !== 'demo')) {
+    return (
+      <LoginPage
+        onLogin={() => {
+          window.history.replaceState(null, '', '/');
+          return load();
+        }}
+      />
+    );
+  }
 
   const store = {
     ...me,

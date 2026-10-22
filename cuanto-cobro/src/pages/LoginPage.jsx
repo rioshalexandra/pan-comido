@@ -35,6 +35,7 @@ export default function LoginPage({ onLogin }) {
         {DEMO && (
           <div className="notice mb-4 text-center">
             👋 Esta es la <strong>demo</strong>: una pastelería de ejemplo para que toques todo. Lo que cambies queda solo en tu celular.
+            <span className="mt-1 block text-xs text-cocoa-soft">Si tenés tu propia cuenta abierta acá, se cierra. Tus datos no se tocan: volvés a entrar con tu usuario cuando quieras.</span>
           </div>
         )}
         <div className="flex flex-col gap-4">
