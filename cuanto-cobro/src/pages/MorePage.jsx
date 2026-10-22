@@ -5,6 +5,7 @@ import { whatsappLink } from '../lib/format';
 export default function MorePage() {
   const { user, logout, sellerPhone, appName } = useStore();
   const items = [
+    { to: '/copia', label: 'Copia de seguridad', hint: 'Tus datos están en este celular: guardá una copia', icon: '💾' },
     { to: '/proveedores', label: 'Proveedores y pedido', hint: 'Qué hay que comprar y a quién', icon: '🚚' },
     { to: '/ajustes', label: 'Ajustes', hint: 'Tu hora, luz y gas, margen y contraseña', icon: '⚙️' },
   ];

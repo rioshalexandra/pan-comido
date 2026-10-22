@@ -14,6 +14,7 @@ import SuppliersPage from './pages/SuppliersPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
 import MorePage from './pages/MorePage';
+import BackupPage from './pages/BackupPage';
 
 export default function App() {
   const [me, setMe] = useState(undefined);
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/proveedores" element={<SuppliersPage />} />
           <Route path="/ajustes" element={<SettingsPage />} />
           <Route path="/mas" element={<MorePage />} />
+          <Route path="/copia" element={<BackupPage />} />
           {me.user.role === 'admin' && <Route path="/admin" element={<AdminPage />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

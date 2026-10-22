@@ -1,5 +1,22 @@
-// Llamadas al servidor. Si la sesión venció, vuelve a la pantalla de entrar.
+// Llamadas al servidor (usuario y contraseña) o a los datos guardados en el celular (todo lo demás).
+// Si la sesión venció, vuelve a la pantalla de entrar.
+import { localRequest, openLocal } from './localDb';
+
 async function request(method, url, data) {
+  try {
+    const local = localRequest(method, url, data);
+    if (local) return local;
+  } catch (err) {
+    if (err.status === 401) window.dispatchEvent(new Event('cc:logout'));
+    throw err;
+  }
+  const json = await serverRequest(method, url, data);
+  // Al entrar, se abren los datos de esta usuaria en este celular
+  if (url === '/api/me') json.settings = openLocal(json);
+  return json;
+}
+
+async function serverRequest(method, url, data) {
   const res = await fetch(url, {
     method,
     headers: data ? { 'Content-Type': 'application/json' } : undefined,

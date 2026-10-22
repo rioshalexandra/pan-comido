@@ -92,7 +92,7 @@ export default function AdminPage() {
                     </div>
                     <div className="text-xs text-cocoa-soft">
                       Alta {dateText(c.created_at)} · {c.expires_at ? `vence ${dateText(c.expires_at)}` : 'sin vencimiento'} ·{' '}
-                      {c.last_login_at ? `entró por última vez ${dateText(c.last_login_at)}` : 'todavía no entró'} · {c.recipe_count} recetas
+                      {c.last_login_at ? `entró por última vez ${dateText(c.last_login_at)}` : 'todavía no entró'}
                     </div>
                     {c.notes && <div className="mt-1 text-xs text-cocoa-soft">📝 {c.notes}</div>}
                   </div>

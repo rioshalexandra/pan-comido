@@ -5,9 +5,13 @@ cuánto te cuesta cada unidad (con tu trabajo y la luz y el gas), cuánto ganás
 y te avisa cuando sube un ingrediente. También descuenta los ingredientes al producir y arma el pedido a proveedores por WhatsApp.
 
 Una sola app sirve a todas las compradoras: la administradora le da a cada una su usuario y contraseña
-desde **Cuentas de clientas**, con vencimiento opcional (1 mes, 1 año o para siempre), y cada una ve solo sus datos.
+desde **Cuentas de clientas**, con vencimiento opcional (1 mes, 1 año o para siempre).
 
-Corre en Cloudflare (Workers + base de datos D1). El plan gratis alcanza para empezar: 100.000 visitas por día y 5 GB de datos.
+Los datos de cada clienta (ingredientes, recetas, producción y ajustes) se guardan **solo en su celular** (`src/lib/localDb.js`).
+El servidor guarda únicamente las cuentas. Para no perder nada al cambiar de celular, en **Más → Copia de seguridad**
+se guarda un archivo de copia y se recupera en el celular nuevo; Inicio avisa si pasó más de una semana sin copia.
+
+Corre en Cloudflare (Workers + base de datos D1). El plan gratis alcanza para empezar: 100.000 visitas por día.
 
 ## Publicarla (una sola vez)
 
@@ -49,10 +53,3 @@ npm run build && npx wrangler dev           # http://localhost:8787 (usuario adm
 - Margen real = (precio − costo completo) ÷ precio.
 - Ganancia por hora = (precio − ingredientes − luz y gas) × rinde ÷ horas de trabajo.
 - Precio sugerido = costo completo ÷ (1 − margen buscado), redondeado para arriba.
-
-## Publicarla desde un entorno con proxy (Claude en la nube)
-
-Si `npm run deploy` falla con `401 Unauthorized` al subir los archivos ("Asset upload failed"), usá
-`npm run deploy:embedded`: mete la app dentro del Worker (`scripts/embed-assets.mjs` + `worker/embedded.js`,
-configurado en `wrangler.embedded.jsonc`) y la publica sin la subida aparte de archivos. Así está publicada hoy
-en https://cuanto-cobro.rioshalexandra.workers.dev. Si cambiás `database_id`, cambialo en los dos `wrangler*.jsonc`.

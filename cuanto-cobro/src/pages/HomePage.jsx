@@ -5,6 +5,7 @@ import { useStore } from '../store';
 import { missingSettings, recipeCosts } from '../lib/costs';
 import { dateText, money } from '../lib/format';
 import { Loading, MarginChip } from '../components/ui';
+import { BackupReminder } from './BackupPage';
 
 export default function HomePage() {
   const { settings, user } = useStore();
@@ -36,6 +37,8 @@ export default function HomePage() {
         <h1 className="page-title">Hola{firstName ? `, ${firstName}` : ''} 👋</h1>
         <p className="mt-1 text-cocoa-soft">Acá ves si tus precios te dejan ganancia.</p>
       </div>
+
+      <BackupReminder />
 
       {steps.some((s) => !s.done) && (
         <section className="card p-4">
