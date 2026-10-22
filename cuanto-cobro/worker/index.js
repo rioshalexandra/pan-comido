@@ -137,7 +137,8 @@ app.get('/api/me', async (c) => {
   return c.json({
     user: { id: user.id, username: user.username, name: user.name, role: user.role, expires_at: user.expires_at },
     settings,
-    examples: !!user.seed_examples,
+    // 2 = cuenta de demostración, con compras, pagos y producción de ejemplo
+    examples: user.seed_examples === 2 ? 'demo' : !!user.seed_examples,
     appName: c.env.APP_NAME || 'Cuánto Cobro',
     sellerPhone: c.env.SELLER_WHATSAPP || '',
   });
@@ -145,6 +146,7 @@ app.get('/api/me', async (c) => {
 
 app.post('/api/password', async (c) => {
   const user = c.get('user');
+  if (user.seed_examples === 2) fail(400, 'Esta es la cuenta de demostración: la contraseña no se puede cambiar.');
   const { current, next } = await body(c);
   if (!(await checkPassword(String(current || ''), user.password_hash))) fail(400, 'La contraseña actual no es correcta');
   if (String(next || '').length < 6) fail(400, 'La nueva contraseña tiene que tener al menos 6 letras o números');

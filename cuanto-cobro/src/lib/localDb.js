@@ -2,7 +2,8 @@
 // El servidor solo guarda el usuario y la contraseña. Para no perder nada al cambiar de celular
 // están "Guardar copia" y "Recuperar copia" (Más → Copia de seguridad).
 // Responde las mismas direcciones /api/... que antes respondía el servidor, así las pantallas no cambian.
-import { EXAMPLE_SETTINGS, INGREDIENTS, RECIPES } from './examples';
+import { DEMO, EXAMPLE_SETTINGS, INGREDIENTS, RECIPES } from './examples';
+import { recipeCosts } from './costs';
 
 const VERSION = 1;
 const TABLES = ['suppliers', 'ingredients', 'price_history', 'recipes', 'recipe_items', 'production', 'production_items'];
@@ -74,6 +75,7 @@ export function openLocal(me) {
   } else {
     db = emptyDb(me.settings || {});
     if (me.examples) seedExamples();
+    if (me.examples === 'demo') seedDemo();
     save();
   }
   // Pide al navegador que no borre estos datos para liberar espacio
@@ -94,6 +96,65 @@ function seedExamples() {
     for (const [ing, qty] of items) db.recipe_items.push({ id: nextId(), recipe_id: id, ingredient_id: ids.get(ing), qty });
   }
   Object.assign(db.settings, EXAMPLE_SETTINGS);
+}
+
+// Cuenta de demostración: más recetas, compras con pagos, producción y subas de precio,
+// con fechas de las últimas semanas para que todo se vea "vivo"
+function seedDemo() {
+  const ago = (days) => new Date(Date.now() - 3 * 3600 * 1000 - days * 86400000).toISOString().slice(0, 10);
+  const stamp = (days) => `${ago(days)} 12:00:00`;
+  const ids = new Map(db.ingredients.map((i) => [i.name, i]));
+  for (const [name, unit, packQty, packPrice, isPack, stock, min] of DEMO.ingredients) {
+    const row = newIngredient(nextId(), { name, unit, packQty, packPrice, isPackaging: isPack, stock, min }, null);
+    db.ingredients.push(row);
+    ids.set(name, row);
+  }
+  for (const [name, emoji, yieldQty, price, work, oven, notes, items] of DEMO.recipes) {
+    const id = nextId();
+    db.recipes.push({ id, name, emoji, yield_qty: yieldQty, yield_unit: 'un', sale_price: price, work_minutes: work, oven_minutes: oven, notes, created_at: now(), updated_at: now() });
+    for (const [ing, qty] of items) db.recipe_items.push({ id: nextId(), recipe_id: id, ingredient_id: ids.get(ing).id, qty });
+  }
+  // Subas de precio: el precio de hoy ya es el nuevo
+  for (const [name, pct, days] of DEMO.rises) {
+    const ing = ids.get(name);
+    const cost = ing.pack_price / ing.pack_qty;
+    db.price_history.push({ id: nextId(), ingredient_id: ing.id, old_unit_cost: cost / (1 + pct / 100), new_unit_cost: cost, changed_at: stamp(days) });
+    ing.price_updated_at = stamp(days);
+  }
+  const suppliers = new Map();
+  for (const [name, notes, products] of DEMO.suppliers) {
+    const id = nextId();
+    db.suppliers.push({ id, name, phone: '', notes });
+    suppliers.set(name, id);
+    for (const p of products) ids.get(p).supplier_id = id;
+  }
+  for (const [supplier, days, lines, pays] of DEMO.purchases) {
+    const pid = nextId();
+    let total = 0;
+    for (const [name, packs] of lines) {
+      const ing = ids.get(name);
+      const subtotal = packs * ing.pack_price;
+      total += subtotal;
+      db.purchase_items.push({ id: nextId(), purchase_id: pid, ingredient_id: ing.id, name: ing.name, unit: ing.unit, packs, pack_qty: ing.pack_qty, pack_price: ing.pack_price, qty: packs * ing.pack_qty, subtotal });
+    }
+    db.purchases.push({ id: pid, supplier_id: suppliers.get(supplier), purchased_at: ago(days), total, notes: '', created_at: stamp(days) });
+    for (const [share, method, payDays] of pays) {
+      db.payments.push({ id: nextId(), purchase_id: pid, supplier_id: suppliers.get(supplier), amount: Math.round(total * share), method, paid_at: ago(payDays), notes: '' });
+    }
+  }
+  for (const [recipeName, batches, days] of DEMO.production) {
+    const r = recipeWithItems(db.recipes.find((x) => x.name === recipeName));
+    const pid = nextId();
+    const cost = r.items.reduce((sum, i) => sum + i.qty * batches * (i.pack_qty > 0 ? i.pack_price / i.pack_qty : 0), 0);
+    db.production.push({ id: pid, recipe_id: r.id, recipe_name: r.name, batches, units: batches * r.yield_qty, cost, produced_at: ago(days), notes: '' });
+    for (const i of r.items) db.production_items.push({ production_id: pid, ingredient_id: i.ingredient_id, qty: i.qty * batches });
+  }
+  Object.assign(db.settings, DEMO.settings);
+  // Casi todas con buen precio; solo las de DEMO.underpriced quedan "para revisar"
+  for (const r of db.recipes) {
+    if (!DEMO.underpriced.includes(r.name)) r.sale_price = recipeCosts(recipeWithItems(r), db.settings).suggested;
+  }
+  db.last_backup_at = now();
 }
 
 // ---------- copia de seguridad ----------
