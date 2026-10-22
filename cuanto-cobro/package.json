@@ -1,0 +1,28 @@
+{
+  "name": "cuanto-cobro",
+  "version": "1.0.0",
+  "description": "Cuánto Cobro: costeo de recetas para pasteleras emprendedoras (Cloudflare Workers + D1)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "worker": "wrangler dev",
+    "db:local": "wrangler d1 migrations apply cuanto-cobro --local",
+    "db:remote": "wrangler d1 migrations apply cuanto-cobro --remote",
+    "deploy": "vite build && wrangler d1 migrations apply cuanto-cobro --remote && wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.13.13",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^6.4.5",
+    "wrangler": "^4.151.3"
+  },
+  "private": true,
+  "type": "module"
+}

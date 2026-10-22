@@ -1,0 +1,26 @@
+{
+  // Cuánto Cobro en Cloudflare: un Worker (servidor + páginas) y una base de datos D1
+  "name": "cuanto-cobro",
+  "main": "worker/index.js",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cuanto-cobro",
+      // Lo completa "npx wrangler d1 create cuanto-cobro" (ver README)
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "APP_NAME": "Cuánto Cobro",
+    // WhatsApp de quien vende la app (con código de país, sin +), para el botón "Pedir ayuda"
+    "SELLER_WHATSAPP": ""
+  }
+  // ADMIN_USER y ADMIN_PASSWORD se cargan como secretos (ver README), nunca acá
+}

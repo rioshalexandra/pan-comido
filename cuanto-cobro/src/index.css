@@ -1,0 +1,74 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-cream: #fbf7f0;
+  --color-paper: #ffffff;
+  --color-line: #ecdfcf;
+  --color-gold: #d9a441;
+  --color-gold-dark: #b9852a;
+  --color-gold-soft: #f7ecd6;
+  --color-cocoa: #4a3027;
+  --color-cocoa-soft: #7a665c;
+  --color-plum: #8a5a7a;
+  --color-coral: #e07a5f;
+  --color-good: #2f7d4f;
+  --color-warn: #a86a00;
+  --color-bad: #c0392b;
+  --font-sans: ui-rounded, 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
+}
+
+html,
+body {
+  background: var(--color-cream);
+  color: var(--color-cocoa);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-paper shadow-[0_1px_2px_rgba(74,48,39,0.05)];
+  }
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line bg-paper px-4 text-[15px] font-semibold text-cocoa transition active:scale-[0.98] disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply border-gold bg-gold text-white hover:bg-gold-dark;
+  }
+  .btn-danger {
+    @apply border-bad/30 text-bad;
+  }
+  .btn-sm {
+    @apply min-h-9 px-3 text-sm;
+  }
+  .field {
+    @apply flex flex-col gap-1 text-sm font-semibold text-cocoa-soft;
+  }
+  .input {
+    @apply min-h-11 w-full min-w-0 rounded-xl border border-line bg-paper px-3 text-base font-normal text-cocoa outline-none focus:border-gold focus:ring-2 focus:ring-gold/25;
+  }
+  .label-hint {
+    @apply text-xs font-normal text-cocoa-soft;
+  }
+  .page-title {
+    @apply font-display text-[26px] leading-tight font-bold text-cocoa;
+  }
+  .section-title {
+    @apply text-xs font-bold tracking-wider text-cocoa-soft uppercase;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold;
+  }
+  .notice {
+    @apply rounded-xl border border-gold/40 bg-gold-soft px-4 py-3 text-sm text-cocoa;
+  }
+  .error {
+    @apply rounded-xl border border-bad/30 bg-bad/5 px-4 py-3 text-sm text-bad;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
