@@ -8,7 +8,8 @@ export default {
   fetch(request, env, ctx) {
     const { pathname } = new URL(request.url);
     if (pathname.startsWith('/api/')) return app.fetch(request, env, ctx);
-    const file = files[pathname] || files['/index.html'];
+    // /presentacion sirve presentacion.html; todo lo demás que no es un archivo, la app
+    const file = files[pathname] || files[`${pathname.replace(/\/$/, '')}.html`] || files['/index.html'];
     const cache = pathname.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache';
     return new Response(decode(file.body), { headers: { 'content-type': file.type, 'cache-control': cache } });
   },

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es">
+<head>
+<title>Cuánto Cobro</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="La app para pasteleras emprendedoras: cuánto te cuesta cada receta, cuánto ganás y a cuánto venderla.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cuánto Cobro">
+<meta property="og:title" content="¿Cuánto cobro? La app para pasteleras emprendedoras">
+<meta property="og:description" content="Cargás tus ingredientes y recetas, y la app te dice cuánto te cuesta cada unidad, cuánto ganás y a cuánto venderla.">
+<meta property="og:url" content="https://cuanto-cobro.rioshalexandra.workers.dev/presentacion">
+<meta property="og:image" content="https://cuanto-cobro.rioshalexandra.workers.dev/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>body{margin:0}</style>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+  /* Layout: hero con la cuenta de una receta real, después filas de pantallas del celular que alternan lado, y al final "Probala". */
+  :root {
+    --bg: #fbf6ee;
+    --paper: #ffffff;
+    --ink: #3f2a22;
+    --ink-soft: #7a665c;
+    --line: #ecdfcf;
+    --gold: #c98f2a;
+    --gold-soft: #f6e8cc;
+    --plum: #8a5a7a;
+    --good: #2f7d4f;
+    --bad: #c0392b;
+    --phone: #2b1d18;
+    --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Nunito", ui-rounded, "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1d1512; --paper: #2a1f1a; --ink: #f4e9df; --ink-soft: #c2ada0; --line: #43332b;
+      --gold: #e3ad4f; --gold-soft: #3d2f1f; --plum: #c89ab9; --good: #6cc391; --bad: #f08a7d; --phone: #0e0a08;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1d1512; --paper: #2a1f1a; --ink: #f4e9df; --ink-soft: #c2ada0; --line: #43332b;
+    --gold: #e3ad4f; --gold-soft: #3d2f1f; --plum: #c89ab9; --good: #6cc391; --bad: #f08a7d; --phone: #0e0a08;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 17px/1.6 var(--font-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.05; }
+  p { margin: 0; }
+  .eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; padding-block: 56px 40px; }
+  .hero h1 { font-size: clamp(52px, 9vw, 104px); font-weight: 800; letter-spacing: -0.03em; }
+  .hero h1 span { color: var(--gold); }
+  .hero .lead { margin-top: 20px; font-size: 21px; color: var(--ink-soft); max-width: 30ch; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 999px; font: 800 16px var(--font-body); text-decoration: none; border: 1.5px solid var(--line); color: var(--ink); background: var(--paper); cursor: pointer; }
+  .btn.primary { background: var(--gold); border-color: var(--gold); color: #fff; }
+  .btn:focus-visible, .copy:focus-visible { outline: 3px solid var(--plum); outline-offset: 3px; }
+
+  /* La cuenta de una receta, como un ticket */
+  .ticket { background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 24px; box-shadow: 0 18px 40px -24px rgba(63, 42, 34, .45); font-variant-numeric: tabular-nums; }
+  .ticket h3 { font-size: 22px; display: flex; align-items: center; gap: 10px; }
+  .ticket .sub { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+  .rows { display: grid; gap: 8px; margin-top: 18px; font-size: 16px; }
+  .row { display: flex; justify-content: space-between; gap: 12px; }
+  .row.total { border-top: 1.5px dashed var(--line); padding-top: 10px; font-weight: 800; }
+  .bar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; margin-top: 18px; }
+  .bar i { display: block; }
+  .verdict { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .verdict div { background: var(--bg); border-radius: 14px; padding: 10px 14px; }
+  .verdict small { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+  .verdict strong { font: 800 24px var(--font-display); }
+  .verdict .sug { background: var(--gold-soft); }
+  .verdict .sug strong { color: var(--gold); }
+  .warn { margin-top: 12px; font-size: 14px; font-weight: 700; color: var(--bad); }
+
+  /* Filas de pantallas */
+  .feature { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; padding-block: 56px; border-top: 1px solid var(--line); }
+  .feature.flip .copytext { order: 2; }
+  .copytext { min-width: 0; }
+  .copytext h2 { font-size: clamp(32px, 5vw, 48px); font-weight: 700; letter-spacing: -0.02em; margin-top: 10px; }
+  .copytext p { margin-top: 16px; color: var(--ink-soft); max-width: 44ch; }
+  .copytext ul { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .copytext li { padding-left: 26px; position: relative; }
+  .copytext li::before { content: ""; position: absolute; left: 4px; top: .6em; width: 9px; height: 9px; border-radius: 50%; background: var(--gold); }
+  .phones { display: flex; justify-content: center; gap: 18px; }
+  .phone { width: min(280px, 100%); flex: 0 1 280px; background: var(--phone); padding: 9px; border-radius: 38px; box-shadow: 0 30px 50px -28px rgba(63, 42, 34, .6); }
+  .phone img { display: block; width: 100%; aspect-ratio: 390 / 844; object-fit: cover; object-position: top; border-radius: 30px; }
+  .phones.two .phone { flex-basis: 240px; }
+  .phones.two .phone:nth-child(2) { margin-top: 48px; }
+
+  /* Y además */
+  .more { padding-block: 56px; border-top: 1px solid var(--line); }
+  .more h2 { font-size: clamp(32px, 5vw, 48px); font-weight: 700; letter-spacing: -0.02em; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: 32px; }
+  .mini { display: grid; gap: 14px; align-content: start; }
+  .mini .phone { width: 100%; border-radius: 30px; padding: 7px; }
+  .mini .phone img { border-radius: 24px; }
+  .mini h3 { font-size: 20px; font-weight: 700; }
+  .mini p { color: var(--ink-soft); font-size: 15px; margin-top: 4px; }
+
+  /* Probala */
+  .try { margin-block: 24px 64px; background: var(--ink); color: var(--bg); border-radius: 28px; padding: clamp(28px, 5vw, 48px); display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; }
+  .try h2 { font-size: clamp(34px, 5vw, 52px); font-weight: 800; letter-spacing: -0.02em; }
+  .try p { margin-top: 12px; opacity: .8; max-width: 46ch; }
+  .creds { display: grid; gap: 10px; min-width: 0; }
+  .cred { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(255, 255, 255, .08); border-radius: 16px; padding: 12px 16px; }
+  .cred small { display: block; font-size: 12px; font-weight: 700; opacity: .7; letter-spacing: .06em; text-transform: uppercase; }
+  .cred code { font: 700 18px/1.3 ui-monospace, "SF Mono", Menlo, monospace; word-break: break-all; user-select: all; }
+  .copy { flex: none; background: var(--gold); color: #fff; border: 0; border-radius: 999px; min-height: 38px; padding: 0 16px; font: 800 14px var(--font-body); cursor: pointer; }
+  .try .btn.primary { justify-self: start; margin-top: 8px; }
+  footer { text-align: center; color: var(--ink-soft); font-size: 14px; padding-block: 0 40px; }
+
+  @media (max-width: 820px) {
+    .hero, .feature, .try { grid-template-columns: 1fr; gap: 32px; }
+    .hero { padding-block: 32px 24px; }
+    .feature { padding-block: 44px; }
+    .feature.flip .copytext { order: 0; }
+    .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .phones.two .phone { flex-basis: 46%; }
+    .phones.two .phone:nth-child(2) { margin-top: 32px; }
+  }
+  @media (max-width: 420px) {
+    body { font-size: 16px; }
+    .hero .lead { font-size: 19px; }
+    .cred code { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .phone { transition: transform .4s ease; }
+    .phone:hover { transform: translateY(-6px) rotate(-1deg); }
+  }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">La app para pasteleras emprendedoras</div>
+      <h1>¿Cuánto <span>cobro?</span></h1>
+      <p class="lead">Cargás tus ingredientes como los comprás y tus recetas. La app te dice cuánto te cuesta cada unidad, cuánto ganás y a cuánto conviene venderla.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#probala">Probala gratis</a>
+        <a class="btn" href="#recetas">Ver cómo funciona</a>
+      </div>
+    </div>
+
+    <aside class="ticket" aria-label="Ejemplo: la cuenta de un cheesecake">
+      <h3>🍰 Cheesecake de frutilla</h3>
+      <p class="sub">Así hace la cuenta la app, con una receta de ejemplo</p>
+      <div class="rows">
+        <div class="row"><span>Ingredientes y caja</span><span>$ 15.354</span></div>
+        <div class="row"><span>Tu trabajo (1 hora)</span><span>$ 4.000</span></div>
+        <div class="row"><span>Luz y gas (50 min de horno)</span><span>$ 625</span></div>
+        <div class="row total"><span>Te cuesta</span><span>$ 19.979</span></div>
+      </div>
+      <div class="bar" aria-hidden="true">
+        <i style="width:51%;background:var(--gold)"></i><i style="width:13%;background:var(--plum)"></i><i style="width:2%;background:var(--bad)"></i><i style="width:34%;background:var(--good)"></i>
+      </div>
+      <div class="verdict">
+        <div><small>La vendías a</small><strong>$ 30.000</strong></div>
+        <div class="sug"><small>Para ganar un 60%</small><strong>$ 50.000</strong></div>
+      </div>
+      <p class="warn">⚠️ Estabas ganando solo un 33%.</p>
+    </aside>
+  </header>
+
+  <section class="feature" id="recetas">
+    <div class="copytext">
+      <div class="eyebrow">Recetas</div>
+      <h2>El precio justo de cada receta</h2>
+      <p>Elegís cuánto querés ganar y la app te sugiere el precio, ya redondeado para la vitrina. Con un toque lo usás.</p>
+      <ul>
+        <li>Cuenta ingredientes, packaging, tu hora de trabajo y la luz y el gas del horno.</li>
+        <li>Una barra de colores te muestra en qué se va cada peso.</li>
+        <li>Margen real y cuánto ganás por cada hora que trabajás.</li>
+        <li>Ficha de la receta para guardar como PDF.</li>
+      </ul>
+    </div>
+    <div class="phones two">
+      <div class="phone"><img src="/presentacion/img/receta.webp" alt="Pantalla de una receta con el costo, el precio de venta y el precio sugerido"></div>
+      <div class="phone"><img src="/presentacion/img/reparto.webp" alt="Cómo se reparte el precio: ingredientes, trabajo, luz y gas y ganancia"></div>
+    </div>
+  </section>
+
+  <section class="feature flip">
+    <div class="copytext">
+      <div class="eyebrow">Inicio</div>
+      <h2>Te avisa antes de que pierdas plata</h2>
+      <p>Apenas abrís la app ves qué recetas estás cobrando de menos, qué conviene producir y qué ingredientes subieron.</p>
+      <ul>
+        <li>"Estás cobrando de menos", con el precio que deberías cobrar.</li>
+        <li>Ranking de las recetas que más te dejan por hora.</li>
+        <li>Subas de precio de los últimos 30 días.</li>
+      </ul>
+    </div>
+    <div class="phones two">
+      <div class="phone"><img src="/presentacion/img/inicio.webp" alt="Inicio con los avisos de recetas para revisar precio"></div>
+      <div class="phone"><img src="/presentacion/img/conviene.webp" alt="Qué conviene producir y subas de precio"></div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="copytext">
+      <div class="eyebrow">Encargos</div>
+      <h2>Presupuestos y lista de precios en un toque</h2>
+      <p>Te preguntan "¿cuánto sale una torta para el cumple?" y en un minuto tenés la respuesta lista para mandar.</p>
+      <ul>
+        <li>Elegís las recetas, sumás decoración y envío, y calcula el total y la seña.</li>
+        <li>Solo vos ves cuánto te cuesta y cuánto ganás con ese encargo.</li>
+        <li>El mensaje sale armado por WhatsApp.</li>
+        <li>Lista de precios como imagen para Instagram, siempre con tus precios al día.</li>
+      </ul>
+    </div>
+    <div class="phones two">
+      <div class="phone"><img src="/presentacion/img/presupuesto.webp" alt="Presupuesto de un encargo con total, seña y ganancia"></div>
+      <div class="phone"><img src="/presentacion/img/lista.webp" alt="Lista de precios lista para compartir"></div>
+    </div>
+  </section>
+
+  <section class="feature flip">
+    <div class="copytext">
+      <div class="eyebrow">Proveedores</div>
+      <h2>Compras, pagos y lo que debés</h2>
+      <p>Cargás lo que compraste y se suma solo al stock. Si cambió el precio, todas tus recetas se actualizan.</p>
+      <ul>
+        <li>Pagos en efectivo o transferencia, todo o una parte.</li>
+        <li>Cuánto compraste y pagaste en el mes.</li>
+        <li>Cuánto le debés a cada proveedor.</li>
+      </ul>
+    </div>
+    <div class="phones">
+      <div class="phone"><img src="/presentacion/img/compras.webp" alt="Compras y pagos del mes con lo que se debe a cada proveedor"></div>
+    </div>
+  </section>
+
+  <section class="more">
+    <div class="eyebrow">Y además</div>
+    <h2>Todo lo de la cocina, en el celular</h2>
+    <div class="grid4">
+      <div class="mini">
+        <div class="phone"><img src="/presentacion/img/ingredientes.webp" alt="Ingredientes con barras de stock"></div>
+        <div><h3>Stock a la vista</h3><p>Barras de colores y aviso cuando algo se está acabando.</p></div>
+      </div>
+      <div class="mini">
+        <div class="phone"><img src="/presentacion/img/pedido.webp" alt="Pedido a proveedores listo para WhatsApp"></div>
+        <div><h3>Pedido por WhatsApp</h3><p>Arma solo el pedido con lo que falta, agrupado por proveedor.</p></div>
+      </div>
+      <div class="mini">
+        <div class="phone"><img src="/presentacion/img/produccion.webp" alt="Producción con lo que se hizo cada día"></div>
+        <div><h3>Producción</h3><p>Anotás lo que hiciste y descuenta los ingredientes.</p></div>
+      </div>
+      <div class="mini">
+        <div class="phone"><img src="/presentacion/img/copia.webp" alt="Copia de seguridad de los datos"></div>
+        <div><h3>Tus datos son tuyos</h3><p>Quedan solo en tu celular, con copia de seguridad.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="try" id="probala">
+    <div>
+      <h2>Probala vos</h2>
+      <p>Entrá a la demo y tocá todo: tiene recetas, presupuestos, compras y producción de ejemplo. Lo que cambies queda solo en tu celular.</p>
+      <a class="btn primary" href="https://cuanto-cobro.rioshalexandra.workers.dev/demo" target="_blank" rel="noopener">Abrir la demo</a>
+    </div>
+    <div class="creds">
+      <div class="cred">
+        <div><small>Link</small><code>cuanto-cobro.rioshalexandra.workers.dev/demo</code></div>
+        <button class="copy" data-copy="https://cuanto-cobro.rioshalexandra.workers.dev/demo" id="copy-link">Copiar</button>
+      </div>
+      <div class="cred">
+        <div><small>Usuario</small><code>demo</code></div>
+        <button class="copy" data-copy="demo" id="copy-user">Copiar</button>
+      </div>
+      <div class="cred">
+        <div><small>Contraseña</small><code>probala</code></div>
+        <button class="copy" data-copy="probala" id="copy-pass">Copiar</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Cuánto Cobro · Los números de esta página son de la receta de ejemplo de la demo.</footer>
+</div>
+
+<script>
+  document.querySelectorAll('.copy').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const done = () => { btn.textContent = '¡Copiado!'; setTimeout(() => (btn.textContent = 'Copiar'), 1800); };
+      navigator.clipboard?.writeText(btn.dataset.copy).then(done).catch(() => {
+        const code = btn.parentElement.querySelector('code');
+        const range = document.createRange();
+        range.selectNodeContents(code);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        btn.textContent = 'Seleccionado';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

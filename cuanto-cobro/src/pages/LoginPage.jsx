@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { api } from '../lib/api';
 
+// El link .../demo trae la cuenta de demostración ya escrita
+const DEMO = window.location.pathname.replace(/\/$/, '') === '/demo';
+
 export default function LoginPage({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState(DEMO ? 'demo' : '');
+  const [password, setPassword] = useState(DEMO ? 'probala' : '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -29,6 +32,11 @@ export default function LoginPage({ onLogin }) {
           <h1 className="font-display text-3xl font-bold">Cuánto Cobro</h1>
           <p className="mt-1 text-sm text-cocoa-soft">Sabé cuánto te cuesta cada receta y a cuánto venderla.</p>
         </div>
+        {DEMO && (
+          <div className="notice mb-4 text-center">
+            👋 Esta es la <strong>demo</strong>: una pastelería de ejemplo para que toques todo. Lo que cambies queda solo en tu celular.
+          </div>
+        )}
         <div className="flex flex-col gap-4">
           <label className="field">
             Usuario
@@ -40,7 +48,7 @@ export default function LoginPage({ onLogin }) {
           </label>
           {error && <div className="error">{error}</div>}
           <button className="btn btn-primary w-full" disabled={busy}>
-            {busy ? 'Entrando…' : 'Entrar'}
+            {busy ? 'Entrando…' : DEMO ? 'Entrar a la demo' : 'Entrar'}
           </button>
         </div>
       </form>
