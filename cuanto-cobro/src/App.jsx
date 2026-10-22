@@ -15,6 +15,8 @@ import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
 import MorePage from './pages/MorePage';
 import BackupPage from './pages/BackupPage';
+import QuotesPage, { QuoteEditPage } from './pages/QuotesPage';
+import PriceListPage from './pages/PriceListPage';
 
 export default function App() {
   const [me, setMe] = useState(undefined);
@@ -68,6 +70,9 @@ export default function App() {
           <Route path="/ajustes" element={<SettingsPage />} />
           <Route path="/mas" element={<MorePage />} />
           <Route path="/copia" element={<BackupPage />} />
+          <Route path="/presupuestos" element={<QuotesPage />} />
+          <Route path="/presupuestos/:id" element={<QuoteEditPage />} />
+          <Route path="/lista-precios" element={<PriceListPage />} />
           {me.user.role === 'admin' && <Route path="/admin" element={<AdminPage />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -85,6 +85,11 @@ export const DEMO = {
     ['Lácteos La Vaquita', 6, [['Manteca', 6], ['Crema de leche', 3], ['Queso crema', 2], ['Huevos', 1]], [[0.5, 'efectivo', 6]]],
     ['Distribuidora El Cacao', 2, [['Chocolate semiamargo', 2], ['Cacao amargo', 1], ['Dulce de leche repostero', 2]], []],
   ],
+  // [clienta, hace cuántos días lo pidió, para dentro de cuántos días, [[receta, cantidad]], [[extra, precio]], envío, estado]
+  quotes: [
+    ['Laura (cumple de Mati)', 1, 4, [['Torta de chocolate', 1], ['Cookies de chocolate', 24]], [['Decoración con cartel y velitas', 6000]], 3500, 'pendiente'],
+    ['Oficina Estudio Ríos', 3, 2, [['Brownies', 32], ['Alfajores de maicena', 40]], [], 4000, 'aceptado'],
+  ],
   // [receta, tandas, hace cuántos días]
   production: [['Cookies de chocolate', 2, 1], ['Brownies', 1, 2], ['Alfajores de maicena', 3, 4], ['Cheesecake de frutilla', 2, 5], ['Budín de limón', 4, 7]],
 };

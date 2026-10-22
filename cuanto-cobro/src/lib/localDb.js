@@ -8,7 +8,8 @@ import { recipeCosts } from './costs';
 const VERSION = 1;
 const TABLES = ['suppliers', 'ingredients', 'price_history', 'recipes', 'recipe_items', 'production', 'production_items'];
 // Compras a proveedores y sus pagos (llegaron después: las copias viejas no las traen)
-const EXTRA_TABLES = ['purchases', 'purchase_items', 'payments'];
+const EXTRA_TABLES = ['purchases', 'purchase_items', 'payments', 'quotes'];
+const QUOTE_STATUS = ['pendiente', 'aceptado', 'rechazado'];
 const METHODS = ['efectivo', 'transferencia'];
 
 class LocalError extends Error {
@@ -72,6 +73,10 @@ export function openLocal(me) {
   if (stored && stored.version === VERSION) {
     db = stored;
     for (const t of EXTRA_TABLES) db[t] ||= [];
+    if (me.examples === 'demo' && !db.demo_quotes) {
+      seedDemoQuotes();
+      save();
+    }
   } else {
     db = emptyDb(me.settings || {});
     if (me.examples) seedExamples();
@@ -154,7 +159,23 @@ function seedDemo() {
   for (const r of db.recipes) {
     if (!DEMO.underpriced.includes(r.name)) r.sale_price = recipeCosts(recipeWithItems(r), db.settings).suggested;
   }
+  seedDemoQuotes();
   db.last_backup_at = now();
+}
+
+// Presupuestos de ejemplo (también para quien abrió la demo antes de que existieran)
+function seedDemoQuotes() {
+  const ago = (days) => new Date(Date.now() - 3 * 3600 * 1000 - days * 86400000).toISOString().slice(0, 10);
+  db.demo_quotes = true;
+  for (const [customer, days, due, lines, extras, delivery, status] of DEMO.quotes) {
+    if (!lines.every(([name]) => db.recipes.some((x) => x.name === name))) continue;
+    const items = lines.map(([name, qty]) => {
+      const r = recipeWithItems(db.recipes.find((x) => x.name === name));
+      return { recipe_id: r.id, name: r.name, emoji: r.emoji, qty, unit_price: r.sale_price, unit_cost: recipeCosts(r, db.settings).fullUnit };
+    });
+    const q = quoteFields({ customer, due_date: ago(-due), items, extras: extras.map(([label, amount]) => ({ label, amount })), delivery, deposit_pct: 50 });
+    db.quotes.push({ id: nextId(), ...q, status, created_at: `${ago(days)} 12:00:00` });
+  }
 }
 
 // ---------- copia de seguridad ----------
@@ -330,6 +351,48 @@ function addPayment(purchase, b) {
     paid_at: isDate(b.paid_at) ? b.paid_at : today(), notes: text(b.notes, 200),
   });
 }
+
+// ---------- presupuestos para encargos ----------
+function quoteFields(b) {
+  const items = (Array.isArray(b.items) ? b.items : [])
+    .map((x) => {
+      const r = db.recipes.find((y) => y.id === Number(x.recipe_id));
+      return {
+        recipe_id: r ? r.id : null,
+        name: text(x.name || r?.name, 80),
+        emoji: text(x.emoji || r?.emoji, 8) || '🧁',
+        qty: num(x.qty),
+        unit_price: Math.max(0, num(x.unit_price)),
+        unit_cost: Math.max(0, num(x.unit_cost)),
+      };
+    })
+    .filter((x) => x.name && x.qty > 0);
+  const extras = (Array.isArray(b.extras) ? b.extras : [])
+    .map((x) => ({ label: text(x.label, 80), amount: Math.max(0, num(x.amount)), cost: Math.max(0, num(x.cost)) }))
+    .filter((x) => x.label && x.amount > 0);
+  if (!items.length && !extras.length) fail(400, 'Agregá al menos un producto al presupuesto');
+  const delivery = Math.max(0, num(b.delivery));
+  const discount = Math.min(100, Math.max(0, num(b.discount_pct)));
+  const subtotal = items.reduce((s, x) => s + x.qty * x.unit_price, 0) + extras.reduce((s, x) => s + x.amount, 0);
+  const total = Math.round(subtotal * (1 - discount / 100) + delivery);
+  const cost = items.reduce((s, x) => s + x.qty * x.unit_cost, 0) + extras.reduce((s, x) => s + x.cost, 0);
+  return {
+    customer: text(b.customer, 80),
+    phone: text(b.phone, 40),
+    due_date: isDate(b.due_date) ? b.due_date : null,
+    items,
+    extras,
+    delivery,
+    discount_pct: discount,
+    deposit_pct: Math.min(100, Math.max(0, num(b.deposit_pct, 50))),
+    valid_days: Math.max(0, Math.round(num(b.valid_days, 7))),
+    notes: text(b.notes, 1000),
+    total,
+    cost: Math.round(cost),
+  };
+}
+
+const ownQuote = (id) => db.quotes.find((q) => q.id === Number(id)) || fail(404, 'No encontré ese presupuesto');
 
 // ---------- las direcciones ----------
 const routes = [
@@ -520,6 +583,46 @@ const routes = [
     db.payments = db.payments.filter((x) => x.id !== Number(id));
     save();
     return { ok: true };
+  }],
+
+  // presupuestos
+  ['GET', /^\/api\/quotes$/, () => ({ data: [...db.quotes].sort((x, y) => y.created_at.localeCompare(x.created_at) || y.id - x.id) })],
+  ['GET', /^\/api\/quotes\/(\d+)$/, (b, id) => ({ data: ownQuote(id) })],
+  ['POST', /^\/api\/quotes$/, (b) => {
+    const q = { id: nextId(), ...quoteFields(b), status: 'pendiente', created_at: now() };
+    db.quotes.push(q);
+    save();
+    return { data: q };
+  }],
+  ['PUT', /^\/api\/quotes\/(\d+)$/, (b, id) => {
+    const q = Object.assign(ownQuote(id), quoteFields(b), { updated_at: now() });
+    save();
+    return { data: q };
+  }],
+  ['POST', /^\/api\/quotes\/(\d+)\/status$/, (b, id) => {
+    const q = ownQuote(id);
+    if (!QUOTE_STATUS.includes(b.status)) fail(400, 'Estado no válido');
+    q.status = b.status;
+    save();
+    return { data: q };
+  }],
+  ['DELETE', /^\/api\/quotes\/(\d+)$/, (b, id) => {
+    db.quotes = db.quotes.filter((q) => q.id !== Number(id));
+    save();
+    return { ok: true };
+  }],
+
+  // lista de precios para compartir: qué recetas van, la nota de abajo y el estilo
+  ['GET', /^\/api\/price-list$/, () => ({ data: { recipe_ids: null, title: '', note: '', style: 'dorado', ...(db.price_list || {}) } })],
+  ['PUT', /^\/api\/price-list$/, (b) => {
+    db.price_list = {
+      recipe_ids: Array.isArray(b.recipe_ids) ? b.recipe_ids.map(Number).filter((id) => db.recipes.some((r) => r.id === id)) : null,
+      title: text(b.title, 60),
+      note: text(b.note, 160),
+      style: ['dorado', 'rosa', 'pizarra'].includes(b.style) ? b.style : 'dorado',
+    };
+    save();
+    return { data: db.price_list };
   }],
 
   // producción

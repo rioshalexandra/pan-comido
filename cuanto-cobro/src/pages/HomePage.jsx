@@ -125,6 +125,12 @@ export default function HomePage() {
         <Link to="/produccion" className="btn">
           👩‍🍳 Anotar producción
         </Link>
+        <Link to="/presupuestos/nuevo" className="btn">
+          🧾 Hacer presupuesto
+        </Link>
+        <Link to="/lista-precios" className="btn">
+          📋 Lista de precios
+        </Link>
       </div>
     </div>
   );

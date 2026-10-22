@@ -8,6 +8,8 @@ const MAIN = [
   { to: '/produccion', label: 'Producción', icon: '👩‍🍳' },
 ];
 const EXTRA = [
+  { to: '/presupuestos', label: 'Presupuestos', icon: '🧾' },
+  { to: '/lista-precios', label: 'Lista de precios', icon: '📋' },
   { to: '/proveedores', label: 'Proveedores y compras', icon: '🚚' },
   { to: '/ajustes', label: 'Ajustes', icon: '⚙️' },
 ];
