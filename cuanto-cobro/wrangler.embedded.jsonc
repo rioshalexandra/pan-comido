@@ -16,7 +16,7 @@
   "vars": {
     "APP_NAME": "Cuánto Cobro",
     // WhatsApp de quien vende la app (con código de país, sin +), para el botón "Pedir ayuda"
-    "SELLER_WHATSAPP": ""
+    "SELLER_WHATSAPP": "1144005692"
   }
   // ADMIN_USER y ADMIN_PASSWORD se cargan como secretos (ver README), nunca acá
 }
