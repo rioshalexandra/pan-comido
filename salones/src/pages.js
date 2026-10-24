@@ -563,11 +563,25 @@ function adminClient() {
 
   function credentials(title, v, username, password) {
     const msg = '¡Hola! Ya está creado tu panel de ' + v.name + ' en ' + window.APP_NAME + '.\n\nEntrá acá para marcar tus fechas ocupadas: ' + location.origin + '/panel\nUsuario: ' + username + '\nContraseña: ' + password + '\n\nCuando tu página esté lista te paso el link para compartir.';
-    H.sheet('<h3>' + title + '</h3><div class="slot"><div><span>Usuario</span><b>' + H.esc(username) + '</b></div></div><div class="slot"><div><span>Contraseña</span><b>' + H.esc(password) + '</b></div></div>' +
-      '<p class="small muted">Guardala o mandásela al dueño ahora: después no se puede volver a ver (sí se puede generar otra).</p>' +
-      (v.whatsapp ? '<a class="btn wa block" target="_blank" href="' + H.waLink(v.whatsapp, msg) + '">💬 Mandar por WhatsApp al dueño</a>' : '<button class="btn block" id="copy">📋 Copiar mensaje para el dueño</button>'));
-    const c = document.getElementById('copy');
-    if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(msg); H.toast('Copiado'); } catch { H.toast('No se pudo copiar'); } };
+    const sheet = H.sheet('<h3>' + title + '</h3><div class="slot"><div><span>Usuario</span><b>' + H.esc(username) + '</b></div></div><div class="slot"><div><span>Contraseña</span><b>' + H.esc(password) + '</b></div></div>' +
+      '<p class="small muted">Mandale esto al dueño ahora: la contraseña después no se puede volver a ver (sí se puede generar otra).</p>' +
+      '<div style="display:grid;gap:10px">' +
+      (v.whatsapp ? '<a class="btn wa block" target="_blank" rel="noopener" href="' + H.waLink(v.whatsapp, msg) + '">💬 Mandar por WhatsApp al dueño</a>' : '') +
+      '<button class="btn alt block" id="sharemsg">↗️ Compartir (elegís a quién)</button>' +
+      '<button class="btn alt block" id="copy">📋 Copiar el mensaje</button></div>' +
+      '<label>El mensaje que le llega<textarea id="msgtxt" rows="7" readonly>' + H.esc(msg) + '</textarea></label>');
+    sheet.querySelector('#sharemsg').onclick = async () => {
+      if (navigator.share) { try { await navigator.share({ text: msg }); } catch { /* lo cerró */ } }
+      else window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    };
+    sheet.querySelector('#copy').onclick = async () => {
+      const ta = sheet.querySelector('#msgtxt');
+      try { await navigator.clipboard.writeText(msg); H.toast('¡Copiado! Pegalo en el chat del dueño'); return; } catch { /* probamos a mano */ }
+      ta.removeAttribute('readonly'); ta.focus(); ta.select(); ta.setSelectionRange(0, msg.length);
+      const ok = document.execCommand && document.execCommand('copy');
+      ta.setAttribute('readonly', '');
+      H.toast(ok ? '¡Copiado! Pegalo en el chat del dueño' : 'Mantené apretado el mensaje para copiarlo');
+    };
   }
 
   function nuevo() {
@@ -589,7 +603,8 @@ function adminClient() {
       '<section class="card"><label style="display:flex;align-items:center;gap:10px;margin:0"><input type="checkbox" id="e_ready" style="width:24px;height:24px;margin:0"' + (s.ready ? ' checked' : '') + '> Página lista y pública</label>' +
         '<p class="small muted" style="margin:6px 0 10px">Mientras no esté tildado, la página dice "en preparación" (vos y el dueño sí la ven).</p>' +
         '<div class="chips"><a class="btn alt small" target="_blank" href="/s/' + v.slug + '">👀 Ver página</a>' +
-        (v.isDemo ? '<button class="btn alt small" id="resetdemo">🔄 Reiniciar ejemplo</button>' : '<button class="btn alt small" id="newpw">🔑 Nueva contraseña</button>') + '</div></section>' +
+        (v.isDemo ? '<button class="btn alt small" id="resetdemo">🔄 Reiniciar ejemplo</button>' : '<button class="btn alt small" id="newpw">📲 Mandar acceso al dueño</button>') + '</div>' +
+        (v.isDemo ? '' : '<p class="small muted" style="margin:8px 0 0">"Mandar acceso" crea una contraseña nueva (la anterior deja de andar) y te deja mandársela por WhatsApp.</p>') + '</section>' +
       '<section class="card"><h3>Logo y colores <span class="tag">Extra</span></h3>' +
         '<div style="display:flex;gap:14px;align-items:center;margin-top:10px"><div id="prevlogo"></div><div class="chips"><label class="btn alt small" style="margin:0">📷 Subir logo<input type="file" id="e_logo" accept="image/*" style="display:none"></label><button class="btn alt small" id="nologo">Quitar</button></div></div>' +
         '<button class="btn alt small" id="fromlogo" style="margin-top:10px">🎨 Sacar colores del logo</button>' +
@@ -625,8 +640,8 @@ function adminClient() {
     };
     $('#pals').onclick = (e) => { const b = e.target.closest('[data-p]'); if (!b) return; const p = PALETTES[b.dataset.p]; $('#e_color1').value = p[0]; $('#e_color2').value = p[1]; };
     if ($('#newpw')) $('#newpw').onclick = async () => {
-      if (!confirm('¿Generar una contraseña nueva? La anterior deja de andar.')) return;
-      try { const r = await H.api('/api/admin/venues/' + v.id + '/password', { body: {} }); credentials('Contraseña nueva', v, r.username, r.password); }
+      if (!confirm('Se va a crear una contraseña nueva para el dueño (la anterior deja de andar). ¿Seguimos?')) return;
+      try { const r = await H.api('/api/admin/venues/' + v.id + '/password', { body: {} }); credentials('Acceso para el dueño', v, r.username, r.password); }
       catch (err) { H.toast(err.message); }
     };
     if ($('#resetdemo')) $('#resetdemo').onclick = async () => { await H.api('/api/admin/venues/' + v.id + '/reset-demo', { body: {} }); H.toast('Ejemplo reiniciado'); };
