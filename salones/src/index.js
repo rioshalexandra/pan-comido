@@ -1,6 +1,7 @@
 // Fecha Libre: servidor (Cloudflare Worker). Páginas en pages.js, contraseñas en auth.js.
 import { hashPassword, checkPassword, newToken, friendlyPassword } from './auth.js';
 import { homePage, venuePage, notReadyPage, notFoundPage, panelPage, adminPage } from './pages.js';
+import { ICONS } from './icons.js';
 import { DEMO_VENUES, DEMO_USER, DEMO_PASSWORD, demoBlocks } from './demo.js';
 
 const SESSION_DAYS = 60;
@@ -292,6 +293,16 @@ async function api(req, env, url, session) {
 
 // ---------- Páginas ----------
 
+// Para el acceso directo en el celular: nombre e ícono (salón con pileta, o el logo del salón)
+function manifest(name, start, color, logo) {
+  const icons = logo
+    ? [{ src: logo, sizes: 'any' }]
+    : [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }];
+  return new Response(JSON.stringify({ name, short_name: name.slice(0, 20), start_url: start, scope: start, display: 'standalone', background_color: '#f6f3ee', theme_color: color, icons }), {
+    headers: { 'content-type': 'application/manifest+json', 'cache-control': 'no-cache' },
+  });
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -304,6 +315,13 @@ export default {
         await ensureDemo(env);
         return html(homePage(env, url.origin));
       }
+      if (ICONS[pathname]) {
+        return new Response(Uint8Array.from(atob(ICONS[pathname]), (c) => c.charCodeAt(0)), {
+          headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' },
+        });
+      }
+      if (pathname === '/panel.webmanifest') return manifest('Mi salón', '/panel', '#3f6b5a');
+      if (pathname === '/admin.webmanifest') return manifest('Mis salones', '/admin', '#3f6b5a');
       if (pathname === '/panel') return html(panelPage(env));
       if (pathname === '/admin') return html(adminPage(env));
       if (pathname === '/demo') return Response.redirect(`${url.origin}/panel?demo=1`, 302);
@@ -316,6 +334,13 @@ export default {
         return new Response(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)), {
           headers: { 'content-type': type, 'cache-control': 'public, max-age=300' },
         });
+      }
+
+      const man = pathname.match(/^\/s\/([a-z0-9-]+)\/manifest\.webmanifest$/);
+      if (man) {
+        const v = await env.DB.prepare('SELECT name, slug, color1, logo FROM venues WHERE slug = ?').bind(man[1]).first();
+        if (!v) return new Response('', { status: 404 });
+        return manifest(v.name, `/s/${v.slug}`, v.color1, v.logo ? `/s/${v.slug}/logo` : null);
       }
 
       const page = pathname.match(/^\/s\/([a-z0-9-]+)\/?$/);
