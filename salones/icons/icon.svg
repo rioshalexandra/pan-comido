@@ -1,56 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fb7c9"/><stop offset="1" stop-color="#bfeee6"/></linearGradient>
-    <linearGradient id="water" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4fe0e6"/><stop offset="1" stop-color="#14a3c4"/></linearGradient>
-    <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6dcb6"/><stop offset="1" stop-color="#e9bf8c"/></linearGradient>
-    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffcf7a"/><stop offset="1" stop-color="#f29a4a"/></linearGradient>
+    <linearGradient id="w" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ae4e8"/><stop offset="1" stop-color="#1590c4"/></linearGradient>
   </defs>
-  <rect width="512" height="512" fill="url(#sky)"/>
-  <ellipse cx="150" cy="96" rx="70" ry="22" fill="#fff" opacity=".9"/>
-  <ellipse cx="190" cy="80" rx="40" ry="22" fill="#fff" opacity=".9"/>
-  <ellipse cx="380" cy="130" rx="55" ry="16" fill="#fff" opacity=".75"/>
-  <!-- verde de fondo -->
-  <path d="M0 270 Q80 230 160 250 T330 240 T512 250 V340 H0 Z" fill="#2f9e6e"/>
-  <!-- casa moderna -->
-  <rect x="150" y="196" width="250" height="78" fill="#fdfaf3"/>
-  <rect x="120" y="182" width="300" height="20" rx="4" fill="#ffffff"/>
-  <rect x="120" y="200" width="300" height="6" fill="#d9d2c4"/>
-  <rect x="168" y="212" width="66" height="54" fill="url(#glass)"/>
-  <rect x="244" y="212" width="40" height="54" fill="#7a5236"/>
-  <rect x="294" y="212" width="90" height="54" fill="url(#glass)"/>
-  <path d="M200 212v54 M339 212v54" stroke="#fdfaf3" stroke-width="4"/>
-  <rect x="110" y="270" width="320" height="16" fill="#fdfaf3"/>
-  <rect x="110" y="284" width="320" height="6" fill="#d9d2c4"/>
-  <!-- deck y pileta -->
-  <path d="M0 330 L512 300 V512 H0 Z" fill="url(#deck)"/>
-  <path d="M70 352 L470 322 Q488 321 486 338 L476 430 Q474 446 458 447 L86 470 Q66 471 66 452 Z" fill="#ffffff"/>
-  <path d="M86 362 L462 334 Q472 334 471 344 L462 424 Q461 434 451 435 L98 456 Q86 457 86 445 Z" fill="url(#water)"/>
-  <path d="M120 400 q25 -12 50 0 t50 0 t50 0 t50 0 t50 0" fill="none" stroke="#e8fffd" stroke-width="7" stroke-linecap="round" opacity=".85"/>
-  <path d="M160 428 q25 -12 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#e8fffd" stroke-width="7" stroke-linecap="round" opacity=".6"/>
-  <!-- reposera -->
-  <path d="M300 476 L392 470 L410 446" fill="none" stroke="#f08a3c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M310 476 v20 M386 470 v22" stroke="#c96a26" stroke-width="6" stroke-linecap="round"/>
-  <!-- palmera izquierda -->
-  <path d="M74 340 Q60 250 92 160" fill="none" stroke="#8a5a34" stroke-width="16" stroke-linecap="round"/>
-  <g fill="#1f8a52">
-    <path d="M92 160 Q40 130 4 160 Q50 150 92 166 Z"/>
-    <path d="M92 160 Q60 100 18 92 Q60 120 88 166 Z"/>
-    <path d="M92 160 Q120 100 170 104 Q124 124 96 168 Z"/>
-    <path d="M92 160 Q150 150 186 186 Q140 168 94 168 Z"/>
-    <path d="M92 160 Q96 110 84 70 Q110 112 98 166 Z"/>
+  <rect width="512" height="512" fill="url(#w)"/>
+  <g fill="none" stroke="#c8fbfb" stroke-width="12" stroke-linecap="round" opacity=".7">
+    <path d="M-20 120 q40 -20 80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0"/>
+    <path d="M-20 400 q40 -20 80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0"/>
+    <path d="M-20 470 q40 -20 80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0"/>
   </g>
-  <!-- palmera derecha -->
-  <path d="M452 330 Q462 270 440 200" fill="none" stroke="#8a5a34" stroke-width="13" stroke-linecap="round"/>
-  <g fill="#27a362">
-    <path d="M440 200 Q480 176 512 196 Q478 194 444 206 Z"/>
-    <path d="M440 200 Q462 156 500 150 Q466 172 446 206 Z"/>
-    <path d="M440 200 Q410 160 372 166 Q410 178 436 206 Z"/>
-    <path d="M440 200 Q396 196 368 226 Q404 210 438 208 Z"/>
-  </g>
-  <!-- plantas al frente -->
-  <g fill="#1d7f4b">
-    <path d="M0 512 Q10 440 40 420 Q30 470 50 512 Z"/>
-    <path d="M30 512 Q50 450 96 440 Q66 480 80 512 Z"/>
-    <path d="M512 512 Q500 450 470 436 Q484 480 466 512 Z"/>
+  <!-- calendario -->
+  <rect x="116" y="150" width="280" height="240" rx="34" fill="#fff"/>
+  <path d="M116 184 a34 34 0 0 1 34 -34 h212 a34 34 0 0 1 34 34 v40 h-280 z" fill="#ff7a59"/>
+  <rect x="176" y="126" width="18" height="52" rx="9" fill="#2a2a2a"/>
+  <rect x="318" y="126" width="18" height="52" rx="9" fill="#2a2a2a"/>
+  <path d="M196 304 l42 40 l84 -88" fill="none" stroke="#22b26b" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- hoja de palmera -->
+  <g fill="#178a55">
+    <path d="M512 0 Q380 30 340 140 Q420 90 512 90 Z"/>
+    <path d="M512 0 Q470 120 380 190 Q470 170 512 120 Z" opacity=".85"/>
   </g>
 </svg>
