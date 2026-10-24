@@ -65,15 +65,15 @@ input:focus,textarea:focus{outline:2px solid var(--c1);border-color:transparent}
 .tag.ok{background:#dff3e6;color:#17663a}.tag.wait{background:#fde2c4;color:#7a4a0c}
 `;
 
-function shell({ env, title, description = '', head = '', body, color1 = DEFAULT.color1, color2 = DEFAULT.color2, scripts = '', manifest = '', touchIcon = '/apple-touch-icon.png', appTitle = '' }) {
+function shell({ env, title, description = '', head = '', body, color1 = DEFAULT.color1, color2 = DEFAULT.color2, scripts = '', manifest = '', touchIcon = '/icono-v3-180.png', appTitle = '' }) {
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="theme-color" content="${esc(color1)}">
-<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="icon" type="image/png" href="/icono-v3-192.png">
 <link rel="apple-touch-icon" href="${esc(touchIcon)}">
-${manifest ? `<link rel="manifest" href="${esc(manifest)}">` : ''}
+${manifest ? `<link rel="manifest" href="${esc(manifest)}?v=3">` : ''}
 ${appTitle ? `<meta name="apple-mobile-web-app-title" content="${esc(appTitle)}"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">` : ''}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
@@ -271,7 +271,7 @@ ${preview ? '<div class="preview">👀 Vista previa: esta página todavía no es
 <footer>Hecho con ${esc(env.APP_NAME || 'Fecha Libre')}</footer>`;
   return shell({
     env, title: `${v.name} · Fechas libres`, description, head, body, color1, color2,
-    manifest: `/s/${v.slug}/manifest.webmanifest`, appTitle: v.name, touchIcon: v.hasLogo ? `/s/${v.slug}/logo` : '/apple-touch-icon.png',
+    manifest: `/s/${v.slug}/manifest.webmanifest`, appTitle: v.name, touchIcon: v.hasLogo ? `/s/${v.slug}/logo` : '/icono-v3-180.png',
     scripts: `<script>window.V=${safeJson({ ...v, blocks })};(${publicClient.toString()})();</script>`,
   });
 }

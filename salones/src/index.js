@@ -297,7 +297,7 @@ async function api(req, env, url, session) {
 function manifest(name, start, color, logo) {
   const icons = logo
     ? [{ src: logo, sizes: 'any' }]
-    : [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }];
+    : [{ src: '/icono-v3-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icono-v3-512.png', sizes: '512x512', type: 'image/png' }];
   return new Response(JSON.stringify({ name, short_name: name.slice(0, 20), start_url: start, scope: start, display: 'standalone', background_color: '#f6f3ee', theme_color: color, icons }), {
     headers: { 'content-type': 'application/manifest+json', 'cache-control': 'no-cache' },
   });
@@ -317,7 +317,7 @@ export default {
       }
       if (ICONS[pathname]) {
         return new Response(Uint8Array.from(atob(ICONS[pathname]), (c) => c.charCodeAt(0)), {
-          headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' },
+          headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600' },
         });
       }
       if (pathname === '/panel.webmanifest') return manifest('Mi salón', '/panel', '#3f6b5a');
