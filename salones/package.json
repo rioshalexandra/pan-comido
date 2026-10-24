@@ -1,0 +1,16 @@
+{
+  "name": "fecha-libre",
+  "version": "1.0.0",
+  "description": "Fecha Libre: calendario público de salones de fiesta con consulta por WhatsApp (Cloudflare Workers + D1)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "db:local": "wrangler d1 migrations apply fecha-libre --local",
+    "db:remote": "wrangler d1 migrations apply fecha-libre --remote",
+    "deploy": "wrangler d1 migrations apply fecha-libre --remote && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.3"
+  }
+}

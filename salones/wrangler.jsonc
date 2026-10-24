@@ -1,0 +1,22 @@
+{
+  // Fecha Libre en Cloudflare: un Worker (servidor + páginas) y una base de datos D1
+  "name": "fecha-libre",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  // Sin esto, el código del navegador (que se manda con toString) se rompe
+  "keep_names": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fecha-libre",
+      "database_id": "461a1056-fdd1-4d8f-8eaa-769f2874bea0",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "APP_NAME": "Fecha Libre",
+    // WhatsApp de quien vende la app (botón "Quiero la mía" y WhatsApp del salón de ejemplo)
+    "SELLER_WHATSAPP": "1144005692"
+  }
+  // ADMIN_USER y ADMIN_PASSWORD se cargan como secretos, nunca acá
+}
