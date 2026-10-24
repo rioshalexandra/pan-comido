@@ -349,6 +349,18 @@ function panelClient() {
   let V = null, taken = new Map(), cur = null, isDemoUser = false, tab = 'cal';
   const today = H.ymd(new Date());
 
+  const notesKey = () => 'fl_notas_' + V.id;
+  function readNotes() {
+    try { return JSON.parse(localStorage.getItem(notesKey()) || '{}'); } catch { return {}; }
+  }
+  function writeNotes(date, state) {
+    try {
+      const all = readNotes();
+      state.forEach((x) => { const k = date + '|' + x.slot; if (x.taken && x.note.trim()) all[k] = x.note.trim(); else delete all[k]; });
+      localStorage.setItem(notesKey(), JSON.stringify(all));
+    } catch { H.toast('Este celular no deja guardar notas'); }
+  }
+
   async function start() {
     try {
       const me = await H.api('/api/me');
@@ -379,6 +391,9 @@ function panelClient() {
     V = d.venue;
     isDemoUser = d.isDemoUser;
     taken = new Map(d.blocks.map((b) => [b.date + '|' + b.slot, b.note || '']));
+    // Notas privadas: guardadas solo en este celular (como en Cuánto Cobro)
+    const local = readNotes();
+    for (const k of taken.keys()) if (local[k]) taken.set(k, local[k]);
     if (!cur) { const n = new Date(); cur = new Date(n.getFullYear(), n.getMonth(), 1); }
     document.documentElement.style.setProperty('--c1', V.color1);
     draw();
@@ -410,7 +425,7 @@ function panelClient() {
       '</section>' +
       '<section class="card"><div class="cal-nav"><button id="prev">‹</button><h3 id="mes"></h3><button id="next">›</button></div><div id="cal"></div>' +
         '<div class="legend"><span><i style="background:#dff3e6"></i>Libre</span><span><i style="background:linear-gradient(135deg,#dff3e6 50%,#fde2c4 50%)"></i>Un turno ocupado</span><span><i style="background:#f6d6d3"></i>Ocupado</span></div>' +
-        '<p class="small muted" style="margin:10px 0 0">Tocá un día para marcarlo ocupado o libre.</p></section>' +
+        '<p class="small muted" style="margin:10px 0 0">Tocá un día para marcarlo ocupado o libre. Las notas (quién reservó, seña) quedan guardadas solo en este celular.</p></section>' +
       '<section class="card"><h3>Próximas fechas ocupadas</h3>' +
         (upcoming.length ? upcoming.map(([d, s]) => {
           const sl = V.slots.find((x) => x.id === s);
@@ -444,7 +459,7 @@ function panelClient() {
       sheet.querySelector('#rows').innerHTML = state.map((x, i) =>
         '<div class="slot ' + (x.taken ? '' : 'ok') + '" style="flex-wrap:wrap;' + (x.taken ? 'background:#fbe7e5' : '') + '"><div><b>' + H.esc(x.label) + '</b>' + (x.hours ? '<span>' + H.esc(x.hours) + '</span>' : '') + '</div>' +
         '<button class="btn small ' + (x.taken ? 'danger' : 'alt') + '" data-i="' + i + '">' + (x.taken ? '🔴 Ocupado' : '🟢 Libre') + '</button>' +
-        (x.taken ? '<input data-note="' + i + '" placeholder="Nota (solo la ves vos): quién, seña..." value="' + H.esc(x.note) + '" maxlength="200">' : '') + '</div>').join('');
+        (x.taken ? '<input data-note="' + i + '" placeholder="Nota (queda solo en este celular): quién, seña..." value="' + H.esc(x.note) + '" maxlength="200">' : '') + '</div>').join('');
       sheet.querySelectorAll('[data-i]').forEach((b) => (b.onclick = () => { const x = state[b.dataset.i]; x.taken = !x.taken; rows(); }));
       sheet.querySelectorAll('[data-note]').forEach((inp) => (inp.oninput = () => { state[inp.dataset.note].note = inp.value; }));
     };
@@ -452,7 +467,8 @@ function panelClient() {
     if (sheet.querySelector('#all')) sheet.querySelector('#all').onclick = () => { state.forEach((x) => (x.taken = true)); rows(); };
     sheet.querySelector('#save').onclick = async () => {
       try {
-        await H.api('/api/panel/day', { body: { date: s, slots: state.map((x) => ({ slot: x.slot, taken: x.taken, note: x.note })) } });
+        await H.api('/api/panel/day', { body: { date: s, slots: state.map((x) => ({ slot: x.slot, taken: x.taken, note: isDemoUser ? x.note : '' })) } });
+        writeNotes(s, state);
         state.forEach((x) => { const k = s + '|' + x.slot; if (x.taken) taken.set(k, x.note); else taken.delete(k); });
         H.closeSheet();
         H.toast('¡Guardado! Ya se ve en tu página.');

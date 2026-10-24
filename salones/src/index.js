@@ -168,6 +168,7 @@ async function api(req, env, url, session) {
     if (pathname === '/api/panel' && method === 'GET') {
       const v = await env.DB.prepare('SELECT * FROM venues WHERE id = ?').bind(venueId).first();
       if (!v) return fail('No encontramos tu salón', 404);
+      // Las notas del dueño viven solo en su celular; el servidor solo las tiene en los salones de ejemplo
       const blocks = (await env.DB.prepare('SELECT date, slot, note FROM blocks WHERE venue_id = ? AND date >= ? ORDER BY date')
         .bind(venueId, todayAR(-90)).all()).results;
       return json({ venue: publicVenue(v), blocks, username: session.username, isDemoUser });
@@ -183,7 +184,7 @@ async function api(req, env, url, session) {
         if (!/^s\d{1,4}$/.test(slot)) continue;
         stmts.push(s.taken
           ? env.DB.prepare('INSERT INTO blocks (venue_id, date, slot, note) VALUES (?, ?, ?, ?) ON CONFLICT (venue_id, date, slot) DO UPDATE SET note = excluded.note')
-            .bind(venueId, date, slot, str(s.note, 200))
+            .bind(venueId, date, slot, isDemoUser ? str(s.note, 200) : '')
           : env.DB.prepare('DELETE FROM blocks WHERE venue_id = ? AND date = ? AND slot = ?').bind(venueId, date, slot));
       }
       if (stmts.length) await env.DB.batch(stmts);
