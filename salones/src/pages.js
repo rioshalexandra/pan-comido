@@ -657,9 +657,14 @@ function adminClient() {
       catch (err) { $('#eerr').textContent = err.message; }
     };
     if ($('#borrar')) $('#borrar').onclick = async () => {
-      if (prompt('Para borrar "' + v.name + '" con todas sus fechas, escribí BORRAR') !== 'BORRAR') return;
-      await H.api('/api/admin/venues/' + v.id, { method: 'DELETE' });
-      await list();
+      const answer = prompt('Para borrar "' + v.name + '" con todas sus fechas, escribí la palabra BORRAR');
+      if (answer === null) return;
+      if (answer.trim().toLowerCase() !== 'borrar') { H.toast('No se borró: tenés que escribir la palabra BORRAR'); return; }
+      try {
+        await H.api('/api/admin/venues/' + v.id, { method: 'DELETE', body: {} });
+        H.toast('Salón borrado');
+        await list();
+      } catch (err) { H.toast(err.message); }
     };
   }
 
