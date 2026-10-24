@@ -7,62 +7,88 @@ const textOn = (hex) => {
   const n = parseInt(String(hex).slice(1), 16);
   return 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 165 ? '#1f1b16' : '#ffffff';
 };
-const DEFAULT = { color1: '#3f6b5a', color2: '#f2b544' };
+const DEFAULT = { color1: '#127c9c', color2: '#ff7a59' };
 
+// Mismo estilo que Cuánto Cobro: fondo crema, tarjetas con borde fino, títulos con serif y botones redondos
 const CSS = `
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:#f6f3ee;color:#1f1b16;line-height:1.4}
+body{margin:0;font-family:ui-rounded,'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:#fbf7f0;color:#3a2e28;line-height:1.4;-webkit-tap-highlight-color:transparent}
 a{color:inherit}
 .wrap{max-width:560px;margin:0 auto;padding:0 16px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:13px 18px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;text-decoration:none;background:var(--c1);color:var(--on1)}
-.btn.alt{background:#fff;color:#1f1b16;border:1.5px solid #e2dbd0}
-.btn.wa{background:#1fa855;color:#fff}
-.btn.danger{background:#fff;color:#b42318;border:1.5px solid #f3c1bb}
-.btn.small{padding:8px 12px;font-size:14px;border-radius:10px}
+h1,h2,h3{line-height:1.15;margin:0 0 6px}
+h1,h2,.title{font-family:Georgia,'Times New Roman',serif;font-weight:700;letter-spacing:-.3px}
+.title{font-size:28px;margin:0}
+.sec{font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#7a665c;margin:0 0 8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border:1px solid var(--c1);border-radius:999px;padding:10px 20px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;text-decoration:none;background:var(--c1);color:var(--on1);transition:transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.alt{background:#fff;color:#3a2e28;border-color:#ecdfcf}
+.btn.wa{background:#1fa855;border-color:#1fa855;color:#fff}
+.btn.danger{background:#fff;color:#c0392b;border-color:#f0c4be}
+.btn.small{min-height:38px;padding:7px 14px;font-size:14px}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.block{display:flex;width:100%}
-.card{background:#fff;border-radius:20px;padding:18px;box-shadow:0 6px 24px rgba(60,40,10,.07);margin:14px 0}
-.muted{color:#6f675c}
+.card{background:#fff;border:1px solid #ecdfcf;border-radius:20px;padding:18px;box-shadow:0 1px 2px rgba(74,48,39,.05);margin:14px 0}
+.muted{color:#7a665c}
 .small{font-size:13px}
-h1,h2,h3{line-height:1.15;margin:0 0 6px}
-label{display:block;font-weight:700;font-size:14px;margin:12px 0 0}
-input,textarea,select{display:block;width:100%;margin-top:6px;padding:12px;border:1.5px solid #e2dbd0;border-radius:12px;font:inherit;font-size:16px;background:#fff;color:inherit}
-input:focus,textarea:focus{outline:2px solid var(--c1);border-color:transparent}
-.err{color:#b42318;font-weight:700;min-height:1em}
+label{display:block;font-weight:700;font-size:14px;color:#7a665c;margin:12px 0 0}
+input,textarea,select{display:block;width:100%;margin-top:6px;min-height:46px;padding:11px 12px;border:1px solid #ecdfcf;border-radius:12px;font:inherit;font-size:16px;font-weight:400;background:#fff;color:#3a2e28}
+input:focus,textarea:focus{outline:none;border-color:var(--c1);box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 22%,transparent)}
+.err{color:#c0392b;font-weight:700;min-height:1em}
+/* Tarjetas de números, como en Cuánto Cobro */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.stat{background:#fff;border:1px solid #ecdfcf;border-radius:18px;padding:14px 8px;text-align:center}
+.stat.hi{border-color:var(--c1)}
+.stat .i{font-size:24px}
+.stat b{display:block;font-family:Georgia,serif;font-size:26px;margin-top:2px}
+.stat span{font-size:12px;color:#7a665c;line-height:1.2;display:block}
 /* Calendario */
-.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.cal-nav h3{margin:0;text-transform:capitalize;font-size:20px}
-.cal-nav button{width:42px;height:42px;border-radius:12px;border:1.5px solid #e2dbd0;background:#fff;font-size:20px;cursor:pointer;color:inherit}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav h3{margin:0;text-transform:capitalize;font-family:Georgia,serif;font-size:22px}
+.cal-nav button{width:42px;height:42px;border-radius:999px;border:1px solid #ecdfcf;background:#fff;font-size:20px;cursor:pointer;color:inherit}
 .cal-nav button:disabled{opacity:.3}
 .cal-week,.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.cal-week span{text-align:center;font-size:12px;font-weight:800;color:#8a8175}
-.day{aspect-ratio:1;border:0;border-radius:12px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;color:#1f1b16;position:relative}
-.day.free{background:#dff3e6;color:#17663a}
-.day.partial{background:linear-gradient(135deg,#dff3e6 50%,#fde2c4 50%);color:#7a4a0c}
-.day.full{background:#f6d6d3;color:#9b2c22}
+.cal-week span{text-align:center;font-size:12px;font-weight:800;color:#a8968a}
+.day{aspect-ratio:1;border:0;border-radius:12px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;color:#3a2e28;position:relative}
+.day.free{background:#e3f4e9;color:#1f7a45}
+.day.partial{background:linear-gradient(135deg,#e3f4e9 50%,#fde4c8 50%);color:#8a5410}
+.day.full{background:#f8dcd8;color:#a3342a}
 .day.full b{text-decoration:line-through;text-decoration-thickness:2px}
-.day.past{background:transparent;color:#c4bcb0;cursor:default}
+.day.past{background:transparent;color:#cdbfb3;cursor:default}
 .day.today{box-shadow:inset 0 0 0 2.5px var(--c1)}
 .day .dot{position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.6}
-.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:13px;color:#6f675c}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:13px;color:#7a665c}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:5px;vertical-align:-2px;margin-right:5px}
 /* Hoja que sube desde abajo */
-.sheet-bg{position:fixed;inset:0;background:rgba(25,18,8,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.sheet-bg{position:fixed;inset:0;background:rgba(40,28,20,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 .sheet-bg.open{display:flex}
-.sheet{background:#fff;width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;position:relative;animation:up .18s ease-out}
+.sheet{background:#fbf7f0;width:100%;max-width:560px;border-radius:26px 26px 0 0;padding:24px 18px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;position:relative;animation:up .18s ease-out}
 @keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
-.sheet h3{font-size:21px;padding-right:40px}
-.sheet .x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:0;background:#f1ece4;font-size:16px;cursor:pointer}
-.slot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:14px;margin-top:10px;background:#f6f3ee}
-.slot span{display:block;font-size:13px;color:#6f675c}
-.slot em{font-style:normal;font-weight:800;color:#9b2c22}
-.slot.ok{background:#e9f7ee}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1f1b16;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:99;max-width:90vw}
+.sheet h3{font-family:Georgia,serif;font-size:23px;padding-right:40px}
+.sheet .x{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:1px solid #ecdfcf;background:#fff;font-size:15px;cursor:pointer}
+.slot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:16px;margin-top:10px;background:#fff;border:1px solid #ecdfcf}
+.slot span{display:block;font-size:13px;color:#7a665c}
+.slot em{font-style:normal;font-weight:800;color:#a3342a}
+.slot.ok{background:#f1faf4;border-color:#cdeacf}
+.slot.busy{background:#fdf1ef;border-color:#f3d2cc}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#3a2e28;color:#fff;padding:12px 18px;border-radius:999px;font-weight:700;z-index:99;max-width:90vw;text-align:center}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:0;border-radius:999px;padding:9px 14px;font:inherit;font-weight:800;font-size:14px;background:#dff3e6;color:#17663a;cursor:pointer}
-.tag{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;background:#f1ece4}
-.tag.ok{background:#dff3e6;color:#17663a}.tag.wait{background:#fde2c4;color:#7a4a0c}
+.chip{border:1px solid #cdeacf;border-radius:999px;padding:9px 14px;font:inherit;font-weight:800;font-size:14px;background:#e3f4e9;color:#1f7a45;cursor:pointer}
+.tag{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;background:#f4ece2;color:#7a665c}
+.tag.ok{background:#e3f4e9;color:#1f7a45}.tag.wait{background:#fde4c8;color:#8a5410}
+/* Barra de abajo, como en Cuánto Cobro */
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ecdfcf;display:flex;justify-content:center;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar div{display:flex;width:100%;max-width:560px}
+.tabbar button{flex:1;border:0;background:none;font:inherit;font-size:12px;font-weight:700;color:#7a665c;padding:8px 0 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar button i{font-style:normal;font-size:22px}
+.tabbar button.on{color:var(--c1)}
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #f1e7da;cursor:pointer}
+.row:first-of-type{border-top:0}
+.row .d{width:52px;text-align:center;flex:none;border-radius:14px;background:#fdf1ef;color:#a3342a;padding:6px 0;line-height:1.05}
+.row .d b{display:block;font-family:Georgia,serif;font-size:22px}
+.row .d small{font-size:11px;font-weight:800;text-transform:uppercase}
+.row .t{flex:1;min-width:0}
+.row .t span{display:block;font-size:13px;color:#7a665c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 `;
 
 function shell({ env, title, description = '', head = '', body, color1 = DEFAULT.color1, color2 = DEFAULT.color2, scripts = '', manifest = '', touchIcon = '/icono-v3-180.png', appTitle = '' }) {
@@ -240,7 +266,7 @@ ${v.hasLogo ? `<meta property="og:image" content="${esc(origin)}/s/${esc(v.slug)
 .hero{background:linear-gradient(160deg,var(--c1),color-mix(in srgb,var(--c1) 70%,#000));color:var(--on1);padding:28px 0 64px;text-align:center}
 .logo{width:96px;height:96px;border-radius:26px;object-fit:contain;background:#fff;margin:0 auto 12px;display:block;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .logo.emoji{display:flex;align-items:center;justify-content:center;font-size:52px;background:var(--c2)}
-.hero h1{font-size:30px;font-weight:900}
+.hero h1{font-size:32px}
 .hero p{margin:4px 0 0;opacity:.9}
 .infos{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:14px}
 .info{background:rgba(255,255,255,.16);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700}
@@ -311,17 +337,18 @@ export function homePage(env, origin) {
 <meta property="og:title" content="${esc(name)}: que tus clientes vean qué días tenés libres">
 <meta property="og:description" content="Una página para tu salón con el calendario de fechas libres y consulta directa por WhatsApp.">
 <style>
-.hero{background:linear-gradient(160deg,#3f6b5a,#24443a);color:#fff;padding:44px 0 70px}
-.hero h1{font-size:36px;font-weight:900}
+.hero{background:linear-gradient(160deg,#127c9c,#0b4f66);color:#fff;padding:40px 0 72px}
+.hero h1{font-size:40px}
+.hero img{width:88px;height:88px;border-radius:24px;box-shadow:0 10px 26px rgba(0,0,0,.25);margin-bottom:14px}
 .hero p{font-size:18px;opacity:.92}
 .pull{margin-top:-44px}
 .feat{display:flex;gap:12px;align-items:flex-start;margin:14px 0}
 .feat b{display:block}
-.feat .ico{font-size:26px;width:44px;height:44px;border-radius:14px;background:#f6f3ee;display:flex;align-items:center;justify-content:center;flex:none}
+.feat .ico{font-size:26px;width:44px;height:44px;border-radius:14px;background:#fbf7f0;border:1px solid #ecdfcf;display:flex;align-items:center;justify-content:center;flex:none}
 .stack{display:grid;gap:10px}
 </style>`;
   const body = `
-<header class="hero"><div class="wrap"><div style="font-size:44px">🎉</div><h1>${esc(name)}</h1><p>Que tus clientes vean qué días tenés libres, y te escriban solo por esos.</p></div></header>
+<header class="hero"><div class="wrap"><img src="/icono-v3-192.png" alt=""><h1>${esc(name)}</h1><p>Que tus clientes vean qué días tenés libres, y te escriban solo por esos.</p></div></header>
 <main class="wrap pull">
   <section class="card stack">
     <h3>Mirá cómo queda</h3>
@@ -346,7 +373,7 @@ function panelClient() {
   const H = window.H;
   const $ = (s) => document.querySelector(s);
   const app = $('#app');
-  let V = null, taken = new Map(), cur = null, isDemoUser = false, tab = 'cal';
+  let V = null, taken = new Map(), cur = null, isDemoUser = false, tab = 'inicio';
   const today = H.ymd(new Date());
 
   const notesKey = () => 'fl_notas_' + V.id;
@@ -371,7 +398,7 @@ function panelClient() {
 
   function loginView() {
     const demo = new URLSearchParams(location.search).has('demo');
-    app.innerHTML = '<section class="card" style="margin-top:12vh"><div style="font-size:40px">🔑</div><h2>Entrar a mi salón</h2>' +
+    app.innerHTML = '<div style="text-align:center;margin-top:9vh"><img src="/icono-v3-192.png" alt="" style="width:84px;height:84px;border-radius:22px;box-shadow:0 8px 20px rgba(18,124,156,.25)"><h1 class="title" style="margin-top:14px">Entrar a mi salón</h1></div><section class="card">' +
       (demo ? '<p class="muted small">Es una demo: ya están puestos el usuario y la contraseña. Tocá Entrar.</p>' : '') +
       '<form id="f"><label>Usuario<input id="u" autocomplete="username" autocapitalize="none" value="' + (demo ? 'demo' : '') + '"></label>' +
       '<label>Contraseña<input id="p" type="password" autocomplete="current-password" value="' + (demo ? 'probala' : '') + '"></label>' +
@@ -395,59 +422,108 @@ function panelClient() {
     const local = readNotes();
     for (const k of taken.keys()) if (local[k]) taken.set(k, local[k]);
     if (!cur) { const n = new Date(); cur = new Date(n.getFullYear(), n.getMonth(), 1); }
-    document.documentElement.style.setProperty('--c1', V.color1);
     draw();
   }
 
+  const TABS = [['inicio', '🏠', 'Inicio'], ['cal', '🗓️', 'Calendario'], ['reservas', '📋', 'Reservas'], ['datos', '✏️', 'Mis datos']];
+
   function draw() {
-    const link = location.origin + '/s/' + V.slug;
-    app.innerHTML =
-      '<header style="display:flex;align-items:center;gap:12px;padding:18px 0 4px">' +
-        (V.hasLogo ? '<img src="/s/' + V.slug + '/logo" style="width:46px;height:46px;border-radius:14px;object-fit:contain;background:#fff">' : '<div style="font-size:34px">' + H.esc(V.emoji) + '</div>') +
-        '<div style="flex:1"><h2 style="margin:0">' + H.esc(V.name) + '</h2><span class="muted small">Panel del dueño</span></div>' +
-        '<button class="btn alt small" id="salir">Salir</button></header>' +
-      (isDemoUser ? '<p class="tag wait" style="margin:8px 0 0">Demo: probá todo, se reinicia sola.</p>' : '') +
-      '<div class="chips" style="margin:14px 0 0"><button class="chip" data-tab="cal" style="' + (tab === 'cal' ? '' : 'background:#fff;color:#6f675c') + '">🗓️ Calendario</button>' +
-      '<button class="chip" data-tab="datos" style="' + (tab === 'datos' ? '' : 'background:#fff;color:#6f675c') + '">✏️ Mis datos</button></div>' +
-      '<div id="tab"></div>';
-    $('#salir').onclick = async () => { await H.api('/api/logout', { body: {} }); location.href = '/panel'; };
-    app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { tab = b.dataset.tab; draw(); }));
-    if (tab === 'cal') drawCal(link); else drawDatos();
+    app.innerHTML = (isDemoUser ? '<p class="tag wait" style="margin:14px 0 0">Demo: probá todo, se reinicia sola.</p>' : '') + '<div id="tab"></div>';
+    let bar = document.querySelector('.tabbar');
+    if (!bar) { bar = document.createElement('nav'); bar.className = 'tabbar'; document.body.appendChild(bar); }
+    bar.innerHTML = '<div>' + TABS.map(([id, i, l]) => '<button data-tab="' + id + '" class="' + (tab === id ? 'on' : '') + '"><i>' + i + '</i>' + l + '</button>').join('') + '</div>';
+    bar.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { tab = b.dataset.tab; draw(); scrollTo(0, 0); }));
+    ({ inicio: drawInicio, cal: drawCal, reservas: drawReservas, datos: drawDatos })[tab]();
   }
 
-  function drawCal(link) {
-    const upcoming = [...taken.keys()].map((k) => k.split('|')).filter(([d]) => d >= today).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(0, 8);
+  // Reservas desde hoy: [{ date, slot, label, note }]
+  function upcoming() {
+    return [...taken.keys()].map((k) => k.split('|')).filter(([d]) => d >= today)
+      .sort((a, b) => (a[0] + a[1] < b[0] + b[1] ? -1 : 1))
+      .map(([date, slot]) => { const sl = V.slots.find((x) => x.id === slot); return { date, slot, label: sl ? sl.label : '', note: taken.get(date + '|' + slot) }; })
+      .filter((r) => r.label);
+  }
+
+  function rowHTML(r) {
+    const d = H.parse(r.date);
+    return '<div class="row" data-date="' + r.date + '"><div class="d"><small>' + H.DIAS[d.getDay()].slice(0, 3) + '</small><b>' + d.getDate() + '</b><small>' + H.MESES[d.getMonth()].slice(0, 3) + '</small></div>' +
+      '<div class="t"><b>' + H.esc(r.label) + '</b><span>' + (r.note ? H.esc(r.note) : 'Sin nota') + '</span></div><span class="muted">›</span></div>';
+  }
+
+  function bindRows() { $('#tab').querySelectorAll('.row[data-date]').forEach((el) => (el.onclick = () => openDay(el.dataset.date))); }
+
+  function drawInicio() {
+    const link = location.origin + '/s/' + V.slug;
+    const ups = upcoming();
+    const n = new Date();
+    const monthKey = n.getFullYear() + '-' + H.pad(n.getMonth() + 1);
+    const thisMonth = ups.filter((r) => r.date.startsWith(monthKey)).length;
+    let freeWeekend = 0;
+    for (let i = 0; i < 56; i++) {
+      const d = new Date(n.getFullYear(), n.getMonth(), n.getDate() + i);
+      if (![5, 6, 0].includes(d.getDay())) continue;
+      const s = H.ymd(d);
+      if (V.slots.some((sl) => !taken.has(s + '|' + sl.id))) freeWeekend++;
+    }
     $('#tab').innerHTML =
-      '<section class="card">' +
+      '<header style="display:flex;align-items:center;gap:12px;padding:22px 0 0">' +
+        '<div style="flex:1"><h1 class="title">Hola 👋</h1><p class="muted" style="margin:4px 0 0">Así está <b>' + H.esc(V.name) + '</b>.</p></div>' +
+        (V.hasLogo ? '<img src="/s/' + V.slug + '/logo" style="width:54px;height:54px;border-radius:16px;object-fit:contain;background:#fff;border:1px solid #ecdfcf">' : '<div style="width:54px;height:54px;border-radius:16px;background:#fff;border:1px solid #ecdfcf;display:flex;align-items:center;justify-content:center;font-size:30px">' + H.esc(V.emoji) + '</div>') +
+      '</header>' +
+      '<div class="stats">' +
+        '<div class="stat"><div class="i">🎉</div><b>' + thisMonth + '</b><span>reservas este mes</span></div>' +
+        '<div class="stat hi"><div class="i">🟢</div><b>' + freeWeekend + '</b><span>días de finde libres (8 semanas)</span></div>' +
+        '<div class="stat"><div class="i">' + (V.ready ? '🌐' : '⏳') + '</div><b style="font-size:17px;margin:8px 0 4px">' + (V.ready ? 'Pública' : 'En preparación') + '</b><span>tu página</span></div>' +
+      '</div>' +
+      '<section class="card"><p class="sec">Tu página</p>' +
         (V.ready
-          ? '<b>Tu página</b><p class="small muted" style="margin:4px 0 10px;word-break:break-all">' + link + '</p><div class="chips"><a class="btn small" href="' + link + '" target="_blank">👀 Ver</a><button class="btn wa small" id="share">↗️ Compartir</button></div>'
-          : '<b>Tu página está en preparación</b><p class="small muted" style="margin:4px 0 10px">Todavía no es pública. Mientras tanto cargá tus fechas ocupadas. Te avisamos cuando esté lista para compartir.</p><a class="btn alt small" href="' + link + '" target="_blank">👀 Ver cómo va quedando</a>') +
+          ? '<p class="muted" style="margin:0 0 12px">Compartila en tu Instagram y tus estados: ahí la gente ve qué días tenés libres.</p><div class="chips"><a class="btn small" href="' + link + '" target="_blank">👀 Ver</a><button class="btn wa small" id="share">↗️ Compartir</button></div>'
+          : '<p class="muted" style="margin:0 0 12px">Todavía no es pública. Mientras tanto cargá tus fechas ocupadas. Te avisamos cuando esté lista para compartir.</p><a class="btn alt small" href="' + link + '" target="_blank">👀 Ver cómo va quedando</a>') +
       '</section>' +
-      '<section class="card"><div class="cal-nav"><button id="prev">‹</button><h3 id="mes"></h3><button id="next">›</button></div><div id="cal"></div>' +
-        '<div class="legend"><span><i style="background:#dff3e6"></i>Libre</span><span><i style="background:linear-gradient(135deg,#dff3e6 50%,#fde2c4 50%)"></i>Un turno ocupado</span><span><i style="background:#f6d6d3"></i>Ocupado</span></div>' +
-        '<p class="small muted" style="margin:10px 0 0">Tocá un día para marcarlo ocupado o libre. Las notas (quién reservó, seña) quedan guardadas solo en este celular.</p></section>' +
-      '<section class="card"><h3>Próximas fechas ocupadas</h3>' +
-        (upcoming.length ? upcoming.map(([d, s]) => {
-          const sl = V.slots.find((x) => x.id === s);
-          const note = taken.get(d + '|' + s);
-          return '<div class="slot" data-date="' + d + '" style="cursor:pointer"><div><b>' + H.cap(H.largo(d)) + '</b><span>' + H.esc(sl ? sl.label : '') + (note ? ' · ' + H.esc(note) : '') + '</span></div><span>›</span></div>';
-        }).join('') : '<p class="muted">No tenés fechas ocupadas cargadas.</p>') +
-      '</section>';
+      '<section class="card"><p class="sec">Próximas reservas</p>' +
+        (ups.length ? ups.slice(0, 4).map(rowHTML).join('') + (ups.length > 4 ? '<button class="btn alt block small" id="todas" style="margin-top:8px">Ver todas (' + ups.length + ')</button>' : '')
+          : '<p class="muted" style="margin:0">Todavía no cargaste reservas. Andá a 🗓️ Calendario y tocá un día.</p>') +
+      '</section>' +
+      '<button class="btn block" id="marcar" style="margin-bottom:96px">🗓️ Marcar un día ocupado</button>';
     if ($('#share')) $('#share').onclick = () => H.share(link, V.name + ': mirá qué días tenemos libres');
+    if ($('#todas')) $('#todas').onclick = () => { tab = 'reservas'; draw(); };
+    $('#marcar').onclick = () => { tab = 'cal'; draw(); };
+    bindRows();
+  }
+
+  function drawCal() {
+    $('#tab').innerHTML =
+      '<h1 class="title" style="padding-top:22px">Calendario</h1><p class="muted" style="margin:4px 0 0">Tocá un día para marcarlo ocupado o libre.</p>' +
+      '<section class="card"><div class="cal-nav"><button id="prev" aria-label="Mes anterior">‹</button><h3 id="mes"></h3><button id="next" aria-label="Mes siguiente">›</button></div><div id="cal"></div>' +
+        '<div class="legend"><span><i style="background:#e3f4e9"></i>Libre</span><span><i style="background:linear-gradient(135deg,#e3f4e9 50%,#fde4c8 50%)"></i>Un turno ocupado</span><span><i style="background:#f8dcd8"></i>Ocupado</span></div></section>' +
+      '<p class="small muted" style="margin:0 4px 96px">🔒 Las notas (quién reservó, la seña) quedan guardadas solo en este celular.</p>';
     const render = () => {
       $('#mes').textContent = H.MESES[cur.getMonth()] + ' ' + cur.getFullYear();
       $('#cal').innerHTML = H.calendarHTML(cur.getFullYear(), cur.getMonth(), (s) => {
         const st = H.dayStatus(s, V.slots, taken, today);
         st.dot = V.slots.some((x) => taken.get(s + '|' + x.id));
-        if (st.cls === 'past') { st.disabled = false; st.cls = 'past'; }
+        st.disabled = false;
         return st;
       });
     };
     $('#prev').onclick = () => { cur = new Date(cur.getFullYear(), cur.getMonth() - 1, 1); render(); };
     $('#next').onclick = () => { cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1); render(); };
     $('#cal').onclick = (e) => { const b = e.target.closest('.day'); if (b) openDay(b.dataset.date); };
-    $('#tab').querySelectorAll('.slot[data-date]').forEach((el) => (el.onclick = () => openDay(el.dataset.date)));
     render();
+  }
+
+  function drawReservas() {
+    const ups = upcoming();
+    const groups = {};
+    ups.forEach((r) => { const k = r.date.slice(0, 7); (groups[k] = groups[k] || []).push(r); });
+    $('#tab').innerHTML =
+      '<h1 class="title" style="padding-top:22px">Reservas</h1><p class="muted" style="margin:4px 0 0">Todas tus fechas ocupadas de acá en adelante.</p>' +
+      (ups.length ? Object.keys(groups).map((k) => {
+        const [y, m] = k.split('-').map(Number);
+        return '<section class="card"><p class="sec">' + H.MESES[m - 1] + ' ' + y + ' · ' + groups[k].length + '</p>' + groups[k].map(rowHTML).join('') + '</section>';
+      }).join('') : '<section class="card"><p class="muted" style="margin:0">No tenés reservas cargadas.</p></section>') +
+      '<div style="height:90px"></div>';
+    bindRows();
   }
 
   function openDay(s) {
@@ -472,7 +548,7 @@ function panelClient() {
         state.forEach((x) => { const k = s + '|' + x.slot; if (x.taken) taken.set(k, x.note); else taken.delete(k); });
         H.closeSheet();
         H.toast('¡Guardado! Ya se ve en tu página.');
-        draw();
+        if (tab === 'cal') { const y = scrollY; draw(); scrollTo(0, y); } else draw();
       } catch (err) { H.toast(err.message); }
     };
   }
@@ -480,7 +556,8 @@ function panelClient() {
   function drawDatos() {
     const f = (id, label, val, extra) => '<label>' + label + '<input id="' + id + '" value="' + H.esc(val) + '" ' + (extra || '') + '></label>';
     $('#tab').innerHTML =
-      '<section class="card"><h3>Datos de tu página</h3>' +
+      '<h1 class="title" style="padding-top:22px">Mis datos</h1><p class="muted" style="margin:4px 0 0">Lo que ve la gente en tu página.</p>' +
+      '<section class="card"><p class="sec">Tu salón</p>' +
         f('name', 'Nombre del salón', V.name, 'maxlength="60"') +
         f('tagline', 'Frase corta', V.tagline, 'maxlength="120" placeholder="Ej: Salón con parque y pileta"') +
         f('capacity', 'Capacidad', V.capacity, 'maxlength="60" placeholder="Ej: Hasta 80 personas"') +
@@ -488,13 +565,14 @@ function panelClient() {
         f('address', 'Zona o dirección', V.address, 'maxlength="120"') +
         f('whatsapp', 'WhatsApp para consultas', V.whatsapp, 'inputmode="tel" placeholder="Ej: 11 2345 6789"') +
         f('instagram', 'Instagram', V.instagram, 'autocapitalize="none" placeholder="Ej: @misalon"') +
-        '<h3 style="margin-top:22px">Turnos</h3><p class="small muted" style="margin:0">Por ejemplo "Mediodía" y "Noche", o uno solo "Día completo".</p><div id="slots"></div>' +
+        '<p class="sec" style="margin-top:24px">Turnos</p><p class="small muted" style="margin:0">Por ejemplo "Mediodía" y "Noche", o uno solo "Día completo".</p><div id="slots"></div>' +
         '<button class="btn alt small" id="addslot" style="margin-top:10px">+ Agregar turno</button>' +
         '<p class="err" id="err"></p><button class="btn block" id="guardar">Guardar cambios</button></section>' +
-      '<section class="card"><h3>Cambiar contraseña</h3>' +
+      '<section class="card"><p class="sec">Cambiar contraseña</p>' +
         (isDemoUser ? '<p class="muted small">En la demo no se puede cambiar.</p>' :
           '<label>Contraseña actual<input id="pw0" type="password" autocomplete="current-password"></label><label>Contraseña nueva<input id="pw1" type="password" autocomplete="new-password"></label><label>Repetí la nueva<input id="pw2" type="password" autocomplete="new-password"></label><p class="err" id="errpw"></p><button class="btn alt block" id="pw">Cambiar contraseña</button>') +
-      '</section>';
+      '</section><button class="btn alt block" id="salir" style="margin-bottom:96px">Salir</button>';
+    $('#salir').onclick = async () => { await H.api('/api/logout', { body: {} }); location.href = '/panel'; };
     const slots = V.slots.map((s) => ({ ...s }));
     const drawSlots = () => {
       $('#slots').innerHTML = slots.map((s, i) =>
@@ -558,7 +636,7 @@ function adminClient() {
   }
 
   function loginView() {
-    app.innerHTML = '<section class="card" style="margin-top:12vh"><h2>Administración</h2><form id="f"><label>Usuario<input id="u" autocapitalize="none" autocomplete="username"></label><label>Contraseña<input id="p" type="password" autocomplete="current-password"></label><p class="err" id="err"></p><button class="btn block">Entrar</button></form></section>';
+    app.innerHTML = '<div style="text-align:center;margin-top:9vh"><img src="/icono-v3-192.png" alt="" style="width:84px;height:84px;border-radius:22px"><h1 class="title" style="margin-top:14px">Administración</h1></div><section class="card"><form id="f"><label>Usuario<input id="u" autocapitalize="none" autocomplete="username"></label><label>Contraseña<input id="p" type="password" autocomplete="current-password"></label><p class="err" id="err"></p><button class="btn block">Entrar</button></form></section>';
     $('#f').onsubmit = async (e) => {
       e.preventDefault();
       try {
@@ -571,7 +649,7 @@ function adminClient() {
 
   async function list() {
     venues = (await H.api('/api/admin/venues')).venues;
-    app.innerHTML = '<header style="display:flex;align-items:center;gap:10px;padding:18px 0 0"><h2 style="flex:1;margin:0">Mis salones</h2><button class="btn alt small" id="salir">Salir</button></header>' +
+    app.innerHTML = '<header style="display:flex;align-items:center;gap:10px;padding:18px 0 0"><h1 class="title" style="flex:1">Mis salones</h1><button class="btn alt small" id="salir">Salir</button></header>' +
       '<button class="btn block" id="nuevo" style="margin-top:14px">+ Nuevo salón</button>' +
       venues.map((v) => '<section class="card" style="display:flex;gap:12px;align-items:center;cursor:pointer" data-id="' + v.id + '">' +
         (v.logo ? '<img src="' + v.logo + '" style="width:52px;height:52px;border-radius:14px;object-fit:contain;background:#f6f3ee">' : '<div style="width:52px;height:52px;border-radius:14px;background:' + v.color2 + ';display:flex;align-items:center;justify-content:center;font-size:28px">' + H.esc(v.emoji) + '</div>') +
