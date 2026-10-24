@@ -3,14 +3,15 @@ import { useStore } from '../store';
 import { whatsappLink } from '../lib/format';
 
 export default function MorePage() {
-  const { user, logout, sellerPhone, appName } = useStore();
-  const items = [
+  const { user, logout, sellerPhone, appName, examples } = useStore();
+  const allItems = [
     { to: '/presupuestos', label: 'Presupuestos', hint: 'Armá el precio de un encargo y mandalo por WhatsApp', icon: '🧾' },
     { to: '/lista-precios', label: 'Lista de precios', hint: 'Una imagen con tus precios para WhatsApp o Instagram', icon: '📋' },
     { to: '/copia', label: 'Copia de seguridad', hint: 'Tus datos están en este celular: guardá una copia', icon: '💾' },
     { to: '/proveedores', label: 'Proveedores y compras', hint: 'Pedido, compras, pagos y lo que debés', icon: '🚚' },
     { to: '/ajustes', label: 'Ajustes', hint: 'Tu hora, luz y gas, margen y contraseña', icon: '⚙️' },
   ];
+  const items = examples === 'demo' ? allItems.filter((item) => item.to !== '/copia') : allItems;
   if (user.role === 'admin') items.push({ to: '/admin', label: 'Cuentas de clientas', hint: 'Dar acceso a quien compra la app', icon: '🔑' });
   return (
     <div className="flex flex-col gap-3">

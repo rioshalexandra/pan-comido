@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useStore } from '../store';
+import { whatsappLink } from '../lib/format';
 
 const MAIN = [
   { to: '/', label: 'Inicio', icon: '🏠', end: true },
@@ -15,7 +16,7 @@ const EXTRA = [
 ];
 
 export default function Layout({ children }) {
-  const { appName, user, settings, logout } = useStore();
+  const { appName, user, settings, logout, examples, sellerPhone } = useStore();
   const extra = user.role === 'admin' ? [...EXTRA, { to: '/admin', label: 'Cuentas de clientas', icon: '🔑' }] : EXTRA;
   const link = ({ isActive }) =>
     `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold ${
@@ -43,7 +44,22 @@ export default function Layout({ children }) {
         </button>
       </aside>
 
-      <main className="mx-auto w-full max-w-3xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">{children}</main>
+      <main className="mx-auto w-full max-w-3xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">
+        {examples === 'demo' && (
+          <div className="no-print notice mb-4 text-sm">
+            👋 Estás en la <strong>demo</strong>. Tocá todo lo que quieras: lo que cargues se borra cuando salís.{' '}
+            <a
+              className="font-bold underline"
+              href={sellerPhone ? whatsappLink(sellerPhone, `Hola! Probé la demo de ${appName} y quiero mi cuenta`) : '/presentacion'}
+              target={sellerPhone ? '_blank' : undefined}
+              rel="noreferrer"
+            >
+              Quiero mi cuenta
+            </a>
+          </div>
+        )}
+        {children}
+      </main>
 
       {/* Barra de abajo en el celular */}
       <nav className="no-print fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">

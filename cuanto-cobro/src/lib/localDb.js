@@ -61,6 +61,33 @@ function save() {
 
 const nextId = () => ++db.seq;
 
+// La demo es para probar, no para trabajar: cada visita empieza de cero con los ejemplos
+// (al cerrar la pestaña o la app, o a las 3 horas) y no deja guardar ni recuperar copias.
+let demoMode = false;
+const DEMO_VISIT = 'cc_demo_visita';
+const DEMO_HOURS = 3;
+const hoursSince = (stamp) => (Date.now() - new Date(`${stamp.replace(' ', 'T')}Z`).getTime()) / 3600000;
+
+// Al tocar "Salir" termina la visita: si vuelve a entrar, la demo arranca de cero
+export function endDemoVisit() {
+  try {
+    sessionStorage.removeItem(DEMO_VISIT);
+  } catch {
+    /* nada que borrar */
+  }
+}
+
+function demoVisitIsNew(stored) {
+  let started = null;
+  try {
+    started = sessionStorage.getItem(DEMO_VISIT);
+    sessionStorage.setItem(DEMO_VISIT, '1');
+  } catch {
+    /* sin sessionStorage: se toma como visita nueva */
+  }
+  return !started || !stored?.created_at || hoursSince(stored.created_at) > DEMO_HOURS;
+}
+
 // Abre los datos de esta usuaria en este celular (los crea la primera vez)
 export function openLocal(me) {
   key = `cc_datos_${me.user.username}`;
@@ -70,6 +97,8 @@ export function openLocal(me) {
   } catch {
     stored = null;
   }
+  demoMode = me.examples === 'demo';
+  if (demoMode && demoVisitIsNew(stored)) stored = null;
   if (stored && stored.version === VERSION) {
     db = stored;
     for (const t of EXTRA_TABLES) db[t] ||= [];
@@ -185,6 +214,7 @@ export function backupInfo() {
 }
 
 export function backupFile() {
+  if (demoMode) fail(400, 'En la demo no se pueden guardar copias.');
   db.last_backup_at = now();
   save();
   const content = JSON.stringify({ app: 'cuanto-cobro', ...db }, null, 1);
@@ -192,6 +222,7 @@ export function backupFile() {
 }
 
 export async function restoreFile(file) {
+  if (demoMode) fail(400, 'En la demo no se pueden recuperar copias.');
   let data;
   try {
     data = JSON.parse(await file.text());

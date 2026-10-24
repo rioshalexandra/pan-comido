@@ -8,7 +8,7 @@ import { Loading, MarginChip } from '../components/ui';
 import { BackupReminder } from './BackupPage';
 
 export default function HomePage() {
-  const { settings, user } = useStore();
+  const { settings, user, examples } = useStore();
   const { data: recipes, error } = useData('/api/recipes');
   const { data: ingredients } = useData('/api/ingredients');
   const { data: changes } = useData('/api/price-changes');
@@ -38,7 +38,7 @@ export default function HomePage() {
         <p className="mt-1 text-cocoa-soft">Acá ves si tus precios te dejan ganancia.</p>
       </div>
 
-      <BackupReminder />
+      {examples !== 'demo' && <BackupReminder />}
 
       {steps.some((s) => !s.done) && (
         <section className="card p-4">

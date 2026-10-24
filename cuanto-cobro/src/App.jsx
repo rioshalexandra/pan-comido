@@ -80,7 +80,7 @@ export default function App() {
           <Route path="/proveedores" element={<SuppliersPage />} />
           <Route path="/ajustes" element={<SettingsPage />} />
           <Route path="/mas" element={<MorePage />} />
-          <Route path="/copia" element={<BackupPage />} />
+          {me.examples !== 'demo' && <Route path="/copia" element={<BackupPage />} />}
           <Route path="/presupuestos" element={<QuotesPage />} />
           <Route path="/presupuestos/:id" element={<QuoteEditPage />} />
           <Route path="/lista-precios" element={<PriceListPage />} />
